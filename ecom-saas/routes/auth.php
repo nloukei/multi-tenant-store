@@ -27,6 +27,21 @@ Route::middleware('guest')->group(function () {
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
         ->name('password.email');
 
+    // Intermediate page for central auth: code was generated and logged
+    Route::get('code-sent', [PasswordResetLinkController::class, 'sentForm'])
+        ->name('password.sent');
+
+    // Verify a 5-digit code submitted from the code-sent page
+    Route::post('verify-code', [PasswordResetLinkController::class, 'verifyCode'])
+        ->name('password.verify.code');
+
+    // Code-based reset form and update (central)
+    Route::get('reset-password-code', [PasswordResetLinkController::class, 'editResetForm'])
+        ->name('password.reset.code');
+
+    Route::post('reset-password-code', [PasswordResetLinkController::class, 'updateReset'])
+        ->name('password.update.code');
+
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
         ->name('password.reset');
 

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -45,6 +46,23 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'tenant_auth' => fn (): ?array => Auth::guard('customer')->check() ? [
+                'id' => Auth::guard('customer')->id(),
+                'email' => Auth::guard('customer')->user()?->email,
+                'role' => Auth::guard('customer')->user()?->role,
+                'name' => Auth::guard('customer')->user()?->name,
+            ] : null,
+            // Closure: resolved when Inertia builds the page (after tenancy middleware has run).
+            'tenant' => fn (): ?array => tenant() ? [
+                'id' => tenant('id'),
+                'store_name' => tenant('store_name'),
+                'name' => tenant('store_name') ?? tenant('name'),
+                'primary_color' => tenant('primary_color'),
+                'logo_url' => tenant('logo_url'),
+                'banner_text' => tenant('banner_text'),
+                'plan_id' => tenant('plan_id'),
+                'trial_ends_at' => tenant()?->trial_ends_at?->toIso8601String(),
+            ] : null,
         ]);
     }
 }

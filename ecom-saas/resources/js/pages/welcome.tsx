@@ -1,26 +1,8 @@
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { type SharedData } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
-
-    const { data, setData, post, processing, errors } = useForm({
-        store_name: '',
-        subdomain: '',
-        primary_color: '#1d4ed8',
-        logo_url: '',
-        banner_text: '',
-    });
-
-    const submitStore: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(route('stores.store'));
-    };
 
     return (
         <>
@@ -66,69 +48,10 @@ export default function Welcome() {
                                 We suggest you start with the following.
                             </p>
                             <div className="mb-6 rounded-md border border-[#e3e3e0] p-4 dark:border-[#3E3E3A]">
-                                <h2 className="mb-3 text-sm font-medium">Create your store</h2>
-                                <form className="flex flex-col gap-4" onSubmit={submitStore}>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="store_name">Store name</Label>
-                                        <Input
-                                            id="store_name"
-                                            value={data.store_name}
-                                            onChange={(e) => setData('store_name', e.target.value)}
-                                            placeholder="My Awesome Store"
-                                            autoComplete="organization"
-                                        />
-                                        <InputError message={errors.store_name} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="subdomain">Subdomain</Label>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <Input
-                                                id="subdomain"
-                                                className="max-w-[180px]"
-                                                value={data.subdomain}
-                                                onChange={(e) => setData('subdomain', e.target.value)}
-                                                placeholder="mystore"
-                                                autoComplete="off"
-                                            />
-                                            <span className="text-[#706f6c] dark:text-[#A1A09A]">.localhost:8000</span>
-                                        </div>
-                                        <InputError message={errors.subdomain} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="primary_color">Brand color</Label>
-                                        <Input
-                                            id="primary_color"
-                                            type="color"
-                                            className="h-10 w-20 cursor-pointer"
-                                            value={data.primary_color}
-                                            onChange={(e) => setData('primary_color', e.target.value)}
-                                        />
-                                        <InputError message={errors.primary_color} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="banner_text">Welcome message (optional)</Label>
-                                        <Input
-                                            id="banner_text"
-                                            value={data.banner_text}
-                                            onChange={(e) => setData('banner_text', e.target.value)}
-                                            placeholder="e.g. Free shipping this week"
-                                        />
-                                        <InputError message={errors.banner_text} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="logo_url">Logo URL (optional)</Label>
-                                        <Input
-                                            id="logo_url"
-                                            value={data.logo_url}
-                                            onChange={(e) => setData('logo_url', e.target.value)}
-                                            placeholder="https://…"
-                                        />
-                                        <InputError message={errors.logo_url} />
-                                    </div>
-                                    <Button type="submit" disabled={processing}>
-                                        {processing ? 'Creating…' : 'Create My Store'}
-                                    </Button>
-                                </form>
+                                <h2 className="mb-3 text-sm font-medium">Ready to build your SaaS?</h2>
+                                <p className="text-[#706f6c] dark:text-[#A1A09A]">
+                                    Sign in or register above to get started creating and managing your tenant stores!
+                                </p>
                             </div>
                             <ul className="mb-4 flex flex-col lg:mb-6">
                                 <li className="relative flex items-center gap-4 py-2 before:absolute before:top-1/2 before:bottom-0 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]">

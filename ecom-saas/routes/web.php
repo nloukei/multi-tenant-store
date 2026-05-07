@@ -19,55 +19,53 @@ $centralHostsPattern = collect(config('tenancy.central_domains'))
     ->map(fn (string $d) => preg_quote($d, '/'))
     ->implode('|');
 
-// All central routes must match the central domain
+// Public Central Routes
 Route::domain('{central}')
     ->where(['central' => $centralHostsPattern])
     ->group(function () {
-        /*
-        | LOCAL DEVELOPMENT ONLY: Seed a test tenant
-        | Visit http://localhost:8000/__dev/seed-store-tenant to create a test store
-        | Then you can access it at http://store.localhost:8000
-        */
+        
+        // Local Dev Seed
         if (app()->environment('local')) {
             Route::get('/__dev/seed-store-tenant', function () {
-                // Create or find test tenant
-                $tenant = Tenant::query()->find('store')
-                    ?? Tenant::create(['id' => 'store']);
-
-                // Create domain linking to this tenant
-                $tenant->domains()->firstOrCreate(
-                    ['domain' => 'store.localhost'],
-                );
-
-                return response()->json([
-                    'message' => 'Tenant + domain ready.',
-                    'tenant_id' => $tenant->id,
-                    'domain' => 'store.localhost',
-                    'central' => url('/'),
-                    'tenant_url' => 'http://store.localhost:8000',
-                ]);
+                $tenant = Tenant::query()->find('store') ?? Tenant::create(['id' => 'store']);
+                $tenant->domains()->firstOrCreate(['domain' => 'store.localhost']);
+                return response()->json(['message' => 'Tenant + domain ready.']);
             });
         }
 
-        // Create a new store (requires authentication)
-        Route::post('/stores', [StoreController::class, 'store'])
-            ->middleware('auth')
-            ->name('stores.store');
-
-        // Home page (publicly accessible)
+        // Home page
         Route::get('/', function () {
             return Inertia::render('welcome');
         })->name('home');
 
-        // Protected routes (require login)
-        Route::middleware(['auth'])->group(function () {
-            // Central dashboard
-            Route::get('dashboard', function () {
-                return Inertia::render('dashboard');
-            })->name('dashboard');
-        });
-
-        // Load authentication routes (login, register, password reset)
+        // Load authentication routes
         require __DIR__.'/settings.php';
         require __DIR__.'/auth.php';
     });
+
+// Protected Global Routes (Dashboard & Store Management)
+// These are outside the {central} domain group to prevent 404s on localhost
+Route::middleware(['web', 'auth'])->group(function () {
+    
+    // Central dashboard
+    Route::get('dashboard', function (\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        $tenants = [];
+        
+        if ($user->isSuperAdmin()) {
+            $tenants = Tenant::with(['domains', 'owner'])->get();
+        } else if ($user->isAdmin()) {
+            $tenants = $user->tenants()->with('domains')->get();
+        }
+
+        return Inertia::render('dashboard', [
+            'tenants' => $tenants,
+        ]);
+    })->name('dashboard');
+
+    // Store management
+    Route::get('/stores/create', [StoreController::class, 'create'])->name('stores.create');
+    Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');
+    Route::get('/stores/{tenant}/edit', [StoreController::class, 'edit'])->name('stores.edit');
+    Route::patch('/stores/{tenant}', [StoreController::class, 'update'])->name('stores.update');
+});

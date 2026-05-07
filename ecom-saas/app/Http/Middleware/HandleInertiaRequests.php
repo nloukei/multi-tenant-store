@@ -63,6 +63,10 @@ class HandleInertiaRequests extends Middleware
                 'plan_id' => tenant('plan_id'),
                 'trial_ends_at' => tenant()?->trial_ends_at?->toIso8601String(),
             ] : null,
+            'flash' => [
+                'message' => $request->session()->get('message'),
+                'error' => $request->session()->get('error'),
+            ],
         ]);
     }
 }

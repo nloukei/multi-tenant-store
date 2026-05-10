@@ -7,7 +7,7 @@ const SecondaryButton = React.forwardRef<HTMLButtonElement, ButtonProps>(({ clas
         <Button
             ref={ref}
             variant="ghost"
-            className={cn('text-neutral-900 hover:bg-neutral-100 font-semibold', className)}
+            className={cn('rounded-full font-bold text-neutral-900 hover:bg-neutral-100', className)}
             {...props}
         />
     );

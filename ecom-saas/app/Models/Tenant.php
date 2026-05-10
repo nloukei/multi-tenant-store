@@ -12,7 +12,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains;
+    use HasDatabase, HasDomains, \Stancl\VirtualColumn\VirtualColumn;
 
     /**
      * Real database columns (everything else is stored in the JSON `data` column via VirtualColumn).
@@ -24,6 +24,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return [
             'id',
             'store_name',
+            'currency',
             'user_id',
             'plan_id',
             'trial_ends_at',

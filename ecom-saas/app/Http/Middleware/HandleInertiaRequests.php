@@ -58,10 +58,13 @@ class HandleInertiaRequests extends Middleware
                 'store_name' => tenant('store_name'),
                 'name' => tenant('store_name') ?? tenant('name'),
                 'primary_color' => tenant('primary_color'),
+                'currency' => tenant('currency'),
                 'logo_url' => tenant('logo_url'),
                 'banner_text' => tenant('banner_text'),
+                'banners' => tenant('banners'),
                 'plan_id' => tenant('plan_id'),
                 'trial_ends_at' => tenant()?->trial_ends_at?->toIso8601String(),
+                'categories' => \App\Models\Category::with('children')->whereNull('parent_id')->orderBy('name')->get()->toArray(),
             ] : null,
             'flash' => [
                 'message' => $request->session()->get('message'),

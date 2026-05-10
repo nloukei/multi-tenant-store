@@ -16,14 +16,13 @@ use Inertia\Inertia;
 
 // Build regex pattern of allowed central domains
 $centralHostsPattern = collect(config('tenancy.central_domains'))
-    ->map(fn (string $d) => preg_quote($d, '/'))
+    ->map(fn(string $d) => preg_quote($d, '/'))
     ->implode('|');
 
 // Public Central Routes
 Route::domain('{central}')
     ->where(['central' => $centralHostsPattern])
     ->group(function () {
-        
         // Local Dev Seed
         if (app()->environment('local')) {
             Route::get('/__dev/seed-store-tenant', function () {
@@ -39,19 +38,19 @@ Route::domain('{central}')
         })->name('home');
 
         // Load authentication routes
-        require __DIR__.'/settings.php';
-        require __DIR__.'/auth.php';
+        require __DIR__ . '/settings.php';
+        require __DIR__ . '/auth.php';
     });
 
 // Protected Global Routes (Dashboard & Store Management)
 // These are outside the {central} domain group to prevent 404s on localhost
 Route::middleware(['web', 'auth'])->group(function () {
-    
+
     // Central dashboard
     Route::get('dashboard', function (\Illuminate\Http\Request $request) {
         $user = $request->user();
         $tenants = [];
-        
+
         if ($user->isSuperAdmin()) {
             $tenants = Tenant::with(['domains', 'owner'])->get();
         } else if ($user->isAdmin()) {
@@ -67,5 +66,17 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/stores/create', [StoreController::class, 'create'])->name('stores.create');
     Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');
     Route::get('/stores/{tenant}/edit', [StoreController::class, 'edit'])->name('stores.edit');
+    Route::get('/stores/{tenant}/products', [StoreController::class, 'products'])->name('stores.products');
+    Route::post('/stores/{tenant}/products', [StoreController::class, 'storeProduct'])->name('stores.products.store');
+    Route::post('/stores/{tenant}/products/{product}', [StoreController::class, 'updateProduct'])->name('stores.products.update');
+    Route::delete('/stores/{tenant}/products/{product}', [StoreController::class, 'destroyProduct'])->name('stores.products.destroy');
+    Route::get('/stores/{tenant}/categories', [StoreController::class, 'categories'])->name('stores.categories');
+    Route::post('/stores/{tenant}/categories', [StoreController::class, 'storeCategory'])->name('stores.categories.store');
+    Route::patch('/stores/{tenant}/categories/{category}', [StoreController::class, 'updateCategory'])->name('stores.categories.update');
+    Route::delete('/stores/{tenant}/categories/{category}', [StoreController::class, 'destroyCategory'])->name('stores.categories.destroy');
+    Route::get('/stores/{tenant}/promos', [StoreController::class, 'promos'])->name('stores.promos');
+    Route::post('/stores/{tenant}/promos', [StoreController::class, 'storePromo'])->name('stores.promos.store');
+    Route::post('/stores/{tenant}/promos/{promo}', [StoreController::class, 'updatePromo'])->name('stores.promos.update');
+    Route::delete('/stores/{tenant}/promos/{promo}', [StoreController::class, 'destroyPromo'])->name('stores.promos.destroy');
     Route::patch('/stores/{tenant}', [StoreController::class, 'update'])->name('stores.update');
 });

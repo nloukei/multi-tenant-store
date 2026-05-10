@@ -75,17 +75,40 @@ Route::middleware([
         $products = Product::query()->orderBy('name')->get();
 
         return Inertia::render('tenant/store-front', [
-            'tenant' => [
-                'id' => tenant('id'),                           // Store ID
-                'store_name' => tenant('store_name'),          // Store display name
-                'primary_color' => tenant('primary_color') ?? '#1d4ed8',  // Theme color
-                'logo_url' => tenant('logo_url'),              // Store logo
-                'banner_text' => tenant('banner_text'),        // Welcome message
-                'trial_ends_at' => tenant()?->trial_ends_at?->toIso8601String(),  // Trial end date
-            ],
             'products' => $products,
         ]);
     })->name('tenant.home');
+    
+    Route::get('/cart', function () {
+        return Inertia::render('tenant/cart');
+    })->name('tenant.cart');
+
+    Route::get('/products/{slug}', function (string $slug) {
+        $product = Product::with('category')->where('slug', $slug)->firstOrFail();
+
+        // Get related products from the same category (excluding current)
+        $relatedProducts = $product->category_id
+            ? Product::where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->limit(4)
+                ->get()
+            : collect();
+
+        return Inertia::render('tenant/product-detail', [
+            'product' => $product,
+            'relatedProducts' => $relatedProducts,
+        ]);
+    })->name('tenant.product.show');
+
+    Route::get('/promos', function () {
+        $promos = \App\Models\Promo::where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('tenant/promos', [
+            'promos' => $promos,
+        ]);
+    })->name('tenant.promos');
 
     // ========================================
     // PROTECTED ROUTES (Authenticated customers only)
@@ -105,6 +128,6 @@ Route::middleware([
                 'customer_role' => auth('customer')->user()?->role,
             ]);
         })->middleware('tenant_admin')  // Only admins can access
-        ->name('tenant.admin.overview');
+            ->name('tenant.admin.overview');
     });
 });

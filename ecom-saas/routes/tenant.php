@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Tenant\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Tenant\Auth\PasswordResetCodeController;
 use App\Http\Controllers\Tenant\Auth\RegisteredCustomerController;
+use App\Http\Controllers\Tenant\CheckoutController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -100,6 +101,34 @@ Route::middleware([
         ]);
     })->name('tenant.product.show');
 
+    Route::get('/category/{slug}', function (string $slug, \Illuminate\Http\Request $request) {
+        $category = \App\Models\Category::where('slug', $slug)->firstOrFail();
+        
+        $query = Product::where('category_id', $category->id)->where('is_active', true);
+
+        // Sorting
+        $sort = $request->query('sort', 'newest');
+        if ($sort === 'price_asc') {
+            $query->orderBy('price', 'asc');
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('price', 'desc');
+        } elseif ($sort === 'name_asc') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sort === 'name_desc') {
+            $query->orderBy('name', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $products = $query->get();
+
+        return Inertia::render('tenant/category', [
+            'category' => $category,
+            'products' => $products,
+            'currentSort' => $sort,
+        ]);
+    })->name('tenant.category.show');
+
     Route::get('/promos', function () {
         $promos = \App\Models\Promo::where('is_active', true)
             ->orderBy('created_at', 'desc')
@@ -110,6 +139,11 @@ Route::middleware([
         ]);
     })->name('tenant.promos');
 
+    // Checkout Routes
+    Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('tenant.checkout');
+    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('tenant.checkout.success');
+    Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('tenant.checkout.cancel');
+
     // ========================================
     // PROTECTED ROUTES (Authenticated customers only)
     // ========================================
@@ -118,16 +152,27 @@ Route::middleware([
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
             ->name('tenant.logout');
 
+        // Customer Order History
+        Route::get('/orders', [\App\Http\Controllers\Tenant\OrderController::class, 'index'])
+            ->name('tenant.orders.index');
+
         // Admin-only dashboard (requires role='admin')
-        Route::get('/admin/overview', function () {
-            return response()->json([
-                'message' => 'Tenant admin access granted.',
-                'tenant_id' => tenant('id'),
-                'owner_id' => tenant('user_id'),
-                'customer_id' => auth('customer')->id(),
-                'customer_role' => auth('customer')->user()?->role,
-            ]);
-        })->middleware('tenant_admin')  // Only admins can access
-            ->name('tenant.admin.overview');
+        Route::middleware('tenant_admin')->group(function () {
+            Route::get('/admin/overview', function () {
+                return response()->json([
+                    'message' => 'Tenant admin access granted.',
+                    'tenant_id' => tenant('id'),
+                    'owner_id' => tenant('user_id'),
+                    'customer_id' => auth('customer')->id(),
+                    'customer_role' => auth('customer')->user()?->role,
+                ]);
+            })->name('tenant.admin.overview');
+
+            Route::get('/admin/orders', [\App\Http\Controllers\Tenant\AdminOrderController::class, 'index'])
+                ->name('tenant.admin.orders.index');
+            
+            Route::patch('/admin/orders/{order}/status', [\App\Http\Controllers\Tenant\AdminOrderController::class, 'updateStatus'])
+                ->name('tenant.admin.orders.status');
+        });
     });
 });

@@ -140,7 +140,7 @@ export default function Storefront({ tenant, products }: Props) {
             </div>
 
             <main className="mx-auto max-w-7xl p-8">
-                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-4">
                     {products.length > 0 ? (
                         products.map((product) => (
                             <ProductCard 

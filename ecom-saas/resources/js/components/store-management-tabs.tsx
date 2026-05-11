@@ -10,7 +10,7 @@ import {
 
 interface StoreManagementTabsProps {
     tenantId: string;
-    activeTab: 'settings' | 'products' | 'categories' | 'promos';
+    activeTab: 'settings' | 'products' | 'categories' | 'promos' | 'orders';
 }
 
 const skeletonMap = {
@@ -18,16 +18,18 @@ const skeletonMap = {
     products: <StoreProductsSkeleton />,
     categories: <StoreCategoriesSkeleton />,
     promos: <StorePromosSkeleton />,
+    orders: <StoreProductsSkeleton />, // Reusing products skeleton as a placeholder
 };
 
 export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabsProps) {
-    const [navigatingTo, setNavigatingTo] = useState<'settings' | 'products' | 'categories' | 'promos' | null>(null);
+    const [navigatingTo, setNavigatingTo] = useState<'settings' | 'products' | 'categories' | 'promos' | 'orders' | null>(null);
 
     const tabs = [
         { id: 'settings' as const, label: 'Settings', href: route('stores.edit', tenantId) },
         { id: 'products' as const, label: 'Products', href: route('stores.products', tenantId) },
         { id: 'categories' as const, label: 'Categories', href: route('stores.categories', tenantId) },
         { id: 'promos' as const, label: 'Promos', href: route('stores.promos', tenantId) },
+        { id: 'orders' as const, label: 'Orders', href: route('stores.orders', tenantId) },
     ];
 
     useEffect(() => {
@@ -41,7 +43,7 @@ export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabs
         };
     }, []);
 
-    const handleTabClick = (tabId: 'settings' | 'products' | 'categories' | 'promos', href: string) => {
+    const handleTabClick = (tabId: 'settings' | 'products' | 'categories' | 'promos' | 'orders', href: string) => {
         if (tabId === activeTab) return; // already here, don't navigate
         setNavigatingTo(tabId);
         router.visit(href);

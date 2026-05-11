@@ -7,12 +7,13 @@ import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
-import { Store, CheckCircle2, AlertCircle, Save, ArrowLeft, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
+import { Store, CheckCircle2, AlertCircle, Save, ArrowLeft, Image as ImageIcon, Trash2, Plus, Palette, Globe, Type, Upload, X, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
 export default function EditStore({ tenant }: { tenant: any }) {
     const { flash } = usePage<any>().props;
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [bannerView, setBannerView] = useState<'grid' | 'list'>('grid');
 
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PATCH',
@@ -72,6 +73,9 @@ export default function EditStore({ tenant }: { tenant: any }) {
         });
     };
 
+    const existingBanners = tenant.banners || [];
+    const totalBanners = existingBanners.length + previewUrls.length;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Manage ${tenant.store_name}`} />
@@ -103,9 +107,24 @@ export default function EditStore({ tenant }: { tenant: any }) {
                     </Alert>
                 )}
 
-                <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-                    <form className="flex flex-col gap-8" onSubmit={submitUpdate}>
-                        <div className="grid gap-6">
+                <form className="flex flex-col gap-8" onSubmit={submitUpdate}>
+
+                    {/* ── Section 1: Store Identity ── */}
+                    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+                        <div className="border-b bg-neutral-50/50 px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-lg bg-neutral-100 flex items-center justify-center">
+                                    <Store className="h-4 w-4 text-neutral-500" />
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-sm">Store Identity</h2>
+                                    <p className="text-xs text-muted-foreground">Name, logo, and visual brand</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 grid gap-6">
+                            {/* Store Name */}
                             <div className="grid gap-2">
                                 <Label htmlFor="store_name">Store name</Label>
                                 <Input
@@ -116,44 +135,78 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                 <InputError message={errors.store_name} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="logo_file">Store Logo</Label>
-                                <div className="flex items-center gap-4">
-                                    <div className="h-16 w-16 overflow-hidden rounded-lg border bg-neutral-50 flex items-center justify-center shrink-0">
-                                        {data.logo_url ? (
-                                            <img src={data.logo_url} alt="Logo" className="h-full w-full object-contain" />
-                                        ) : (
-                                            <span className="text-[10px] text-neutral-400">No Logo</span>
-                                        )}
+                            {/* Logo + Brand Color Row */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {/* Logo */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="logo_file">Store Logo</Label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-16 w-16 overflow-hidden rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50 flex items-center justify-center shrink-0">
+                                            {data.logo_url ? (
+                                                <img src={data.logo_url} alt="Logo" className="h-full w-full object-contain p-1" />
+                                            ) : (
+                                                <ImageIcon className="h-6 w-6 text-neutral-300" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <Input
+                                                id="logo_file"
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => setData('logo_file', e.target.files?.[0] || null)}
+                                            />
+                                            <p className="text-[10px] text-muted-foreground mt-1">PNG or SVG with transparent background</p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <Input
-                                            id="logo_file"
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => setData('logo_file', e.target.files?.[0] || null)}
+                                    <InputError message={errors.logo_file} />
+                                </div>
+
+                                {/* Brand Color */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="primary_color">Brand color</Label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            id="primary_color"
+                                            type="color"
+                                            className="h-10 w-14 cursor-pointer rounded-lg border-2 border-neutral-200 p-1 transition-all hover:border-neutral-300"
+                                            value={data.primary_color}
+                                            onChange={(e) => setData('primary_color', e.target.value)}
                                         />
-                                        <p className="text-[10px] text-muted-foreground mt-1">Recommended: PNG or SVG with transparent background.</p>
+                                        <div className="flex items-center gap-2 flex-1">
+                                            <Input 
+                                                value={data.primary_color} 
+                                                onChange={(e) => setData('primary_color', e.target.value)}
+                                                className="font-mono uppercase text-sm"
+                                                maxLength={7}
+                                            />
+                                            <div 
+                                                className="h-10 w-10 rounded-lg border shadow-inner shrink-0"
+                                                style={{ backgroundColor: data.primary_color }}
+                                            />
+                                        </div>
                                     </div>
+                                    <InputError message={errors.primary_color} />
                                 </div>
-                                <InputError message={errors.logo_file} />
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="primary_color">Brand color</Label>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        id="primary_color"
-                                        type="color"
-                                        className="h-10 w-20 cursor-pointer rounded-md border p-1"
-                                        value={data.primary_color}
-                                        onChange={(e) => setData('primary_color', e.target.value)}
-                                    />
-                                    <span className="text-sm text-muted-foreground uppercase font-mono">{data.primary_color}</span>
+                    {/* ── Section 2: Storefront Config ── */}
+                    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+                        <div className="border-b bg-neutral-50/50 px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-lg bg-neutral-100 flex items-center justify-center">
+                                    <Globe className="h-4 w-4 text-neutral-500" />
                                 </div>
-                                <InputError message={errors.primary_color} />
+                                <div>
+                                    <h2 className="font-bold text-sm">Storefront Configuration</h2>
+                                    <p className="text-xs text-muted-foreground">Currency, messaging, and display preferences</p>
+                                </div>
                             </div>
+                        </div>
 
+                        <div className="p-6 grid md:grid-cols-2 gap-6">
+                            {/* Currency */}
                             <div className="grid gap-2">
                                 <Label htmlFor="currency">Store Currency</Label>
                                 <select 
@@ -171,8 +224,9 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                 <InputError message={errors.currency} />
                             </div>
 
+                            {/* Welcome Message */}
                             <div className="grid gap-2">
-                                <Label htmlFor="banner_text">Welcome message (Global)</Label>
+                                <Label htmlFor="banner_text">Welcome message</Label>
                                 <Input
                                     id="banner_text"
                                     value={data.banner_text}
@@ -182,85 +236,173 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                 <InputError message={errors.banner_text} />
                             </div>
                         </div>
+                    </div>
 
-                        {/* Banner Carousel Management */}
-                        <div className="grid gap-4">
+                    {/* ── Section 3: Banner Carousel ── */}
+                    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+                        <div className="border-b bg-neutral-50/50 px-6 py-4">
                             <div className="flex items-center justify-between">
-                                <Label className="text-lg font-semibold">Banner Carousel</Label>
-                                <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => document.getElementById('banner_images')?.click()}>
-                                    <Plus className="h-4 w-4" /> Add Images
-                                </Button>
-                                <input
-                                    id="banner_images"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-neutral-100 flex items-center justify-center">
+                                        <ImageIcon className="h-4 w-4 text-neutral-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="font-bold text-sm">Banner Carousel</h2>
+                                        <p className="text-xs text-muted-foreground">
+                                            {totalBanners} image{totalBanners !== 1 ? 's' : ''} uploaded
+                                            {data.delete_banners.length > 0 && (
+                                                <span className="text-red-500 ml-1">
+                                                    ({data.delete_banners.length} marked for deletion)
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {totalBanners > 2 && (
+                                        <div className="flex rounded-lg border overflow-hidden">
+                                            <button
+                                                type="button"
+                                                className={`px-3 py-1.5 text-xs font-bold transition-colors ${bannerView === 'grid' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 hover:bg-neutral-50'}`}
+                                                onClick={() => setBannerView('grid')}
+                                            >
+                                                Grid
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`px-3 py-1.5 text-xs font-bold transition-colors ${bannerView === 'list' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 hover:bg-neutral-50'}`}
+                                                onClick={() => setBannerView('list')}
+                                            >
+                                                List
+                                            </button>
+                                        </div>
+                                    )}
+                                    <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => document.getElementById('banner_images')?.click()}>
+                                        <Plus className="h-4 w-4" /> Add Images
+                                    </Button>
+                                    <input
+                                        id="banner_images"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                </div>
                             </div>
+                        </div>
 
-                            {/* Existing Banners */}
-                            <div className="grid grid-cols-1 gap-4">
-                                {(tenant.banners || []).map((banner: any, index: number) => (
-                                    <div key={index} className={`relative aspect-[1800/558] overflow-hidden rounded-lg border transition-all ${data.delete_banners.includes(index) ? 'opacity-30 grayscale' : ''}`}>
-                                        <img src={banner.url} className="h-full w-full object-cover" alt={`Banner ${index}`} />
-                                        <div className="absolute inset-0 bg-black/10 hover:bg-black/20 transition-colors" />
-                                        <Button
-                                            type="button"
-                                            variant={data.delete_banners.includes(index) ? "default" : "destructive"}
-                                            size="icon"
-                                            className="absolute top-2 right-2 h-8 w-8"
-                                            onClick={() => toggleDeleteExisting(index)}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                        {data.delete_banners.includes(index) && (
-                                            <div className="absolute inset-0 flex items-center justify-center font-bold text-white bg-black/40">
-                                                To be deleted
+                        <div className="p-6">
+                            {totalBanners > 0 ? (
+                                <div className={
+                                    bannerView === 'grid' && totalBanners > 2
+                                        ? 'grid grid-cols-2 md:grid-cols-3 gap-4'
+                                        : 'grid grid-cols-1 gap-4'
+                                }>
+                                    {/* Existing Banners */}
+                                    {existingBanners.map((banner: any, index: number) => {
+                                        const isMarkedForDeletion = data.delete_banners.includes(index);
+                                        return (
+                                            <div 
+                                                key={index} 
+                                                className={`group relative overflow-hidden rounded-xl border-2 transition-all ${
+                                                    isMarkedForDeletion 
+                                                        ? 'border-red-300 opacity-60 grayscale' 
+                                                        : 'border-neutral-200 hover:border-neutral-300'
+                                                } ${bannerView === 'grid' && totalBanners > 2 ? 'aspect-video' : 'aspect-[1800/558]'}`}
+                                            >
+                                                <img src={banner.url} className="h-full w-full object-cover" alt={`Banner ${index + 1}`} />
+                                                
+                                                {/* Overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                
+                                                {/* Banner Index Badge */}
+                                                <div className="absolute top-3 left-3 bg-black/60 text-white px-2 py-1 text-[10px] font-bold rounded-md backdrop-blur-sm">
+                                                    #{index + 1}
+                                                </div>
+
+                                                {/* Delete / Restore Button */}
+                                                <button
+                                                    type="button"
+                                                    className={`absolute top-3 right-3 h-8 w-8 rounded-lg flex items-center justify-center transition-all shadow-sm ${
+                                                        isMarkedForDeletion 
+                                                            ? 'bg-white text-neutral-700 hover:bg-neutral-100' 
+                                                            : 'bg-red-500 text-white hover:bg-red-600 opacity-0 group-hover:opacity-100'
+                                                    }`}
+                                                    onClick={() => toggleDeleteExisting(index)}
+                                                    title={isMarkedForDeletion ? 'Restore' : 'Delete'}
+                                                >
+                                                    {isMarkedForDeletion ? <EyeOff className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                                                </button>
+
+                                                {/* Deletion Overlay */}
+                                                {isMarkedForDeletion && (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-red-500/10">
+                                                        <span className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                                            Will be removed on save
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
+                                        );
+                                    })}
 
-                                {/* New Upload Previews */}
-                                {previewUrls.map((url, index) => (
-                                    <div key={`new-${index}`} className="relative aspect-[1800/558] overflow-hidden rounded-lg border border-primary/50 bg-primary/5">
-                                        <img src={url} className="h-full w-full object-cover" alt="New Preview" />
-                                        <div className="absolute top-2 left-2 bg-primary text-white px-2 py-1 text-xs rounded">New</div>
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
-                                            className="absolute top-2 right-2 h-8 w-8"
-                                            onClick={() => removeNewUpload(index)}
+                                    {/* New Upload Previews */}
+                                    {previewUrls.map((url, index) => (
+                                        <div 
+                                            key={`new-${index}`} 
+                                            className={`group relative overflow-hidden rounded-xl border-2 border-green-300 bg-green-50 ${
+                                                bannerView === 'grid' && totalBanners > 2 ? 'aspect-video' : 'aspect-[1800/558]'
+                                            }`}
                                         >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
+                                            <img src={url} className="h-full w-full object-cover" alt="New Preview" />
+                                            
+                                            {/* Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            
+                                            {/* New Badge */}
+                                            <div className="absolute top-3 left-3 bg-green-500 text-white px-2.5 py-1 text-[10px] font-bold rounded-md">
+                                                NEW
+                                            </div>
 
-                            {(tenant.banners?.length === 0 && data.banner_images.length === 0) && (
-                                <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg bg-neutral-50">
-                                    <ImageIcon className="h-10 w-10 text-muted-foreground opacity-20 mb-2" />
-                                    <p className="text-sm text-muted-foreground">No banner images uploaded yet.</p>
+                                            {/* Remove Button */}
+                                            <button
+                                                type="button"
+                                                className="absolute top-3 right-3 h-8 w-8 rounded-lg flex items-center justify-center bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                                                onClick={() => removeNewUpload(index)}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div 
+                                    className="flex flex-col items-center justify-center py-16 border-2 border-dashed rounded-xl bg-neutral-50/50 hover:bg-neutral-50 cursor-pointer transition-colors"
+                                    onClick={() => document.getElementById('banner_images')?.click()}
+                                >
+                                    <div className="h-16 w-16 rounded-2xl bg-neutral-100 flex items-center justify-center mb-4">
+                                        <Upload className="h-8 w-8 text-neutral-300" />
+                                    </div>
+                                    <p className="text-sm font-bold text-neutral-500">Click to upload banner images</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Recommended: 1800 × 558px, JPG or PNG</p>
                                 </div>
                             )}
                             <InputError message={errors.banner_images} />
                         </div>
+                    </div>
 
-                        <div className="pt-4 flex justify-between gap-4">
-                            <Button variant="outline" type="button" onClick={() => window.history.back()}>
-                                <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                            </Button>
-                            <Button type="submit" disabled={processing} className="gap-2 px-8">
-                                <Save className="w-4 h-4" />
-                                {processing ? 'Saving...' : 'Save Settings'}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
+                    {/* ── Action Bar ── */}
+                    <div className="flex justify-between gap-4 sticky bottom-0 bg-background/80 backdrop-blur-sm border-t -mx-6 px-6 py-4 z-10">
+                        <Button variant="outline" type="button" onClick={() => window.history.back()}>
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                        </Button>
+                        <Button type="submit" disabled={processing} className="gap-2 px-8">
+                            <Save className="w-4 h-4" />
+                            {processing ? 'Saving...' : 'Save Settings'}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </AppLayout>
     );

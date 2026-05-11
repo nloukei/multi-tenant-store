@@ -78,5 +78,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/stores/{tenant}/promos', [StoreController::class, 'storePromo'])->name('stores.promos.store');
     Route::post('/stores/{tenant}/promos/{promo}', [StoreController::class, 'updatePromo'])->name('stores.promos.update');
     Route::delete('/stores/{tenant}/promos/{promo}', [StoreController::class, 'destroyPromo'])->name('stores.promos.destroy');
+    Route::get('/stores/{tenant}/orders', [StoreController::class, 'orders'])->name('stores.orders');
+    Route::patch('/stores/{tenant}/orders/{order}/status', [StoreController::class, 'updateOrderStatus'])->name('stores.orders.status');
     Route::patch('/stores/{tenant}', [StoreController::class, 'update'])->name('stores.update');
 });

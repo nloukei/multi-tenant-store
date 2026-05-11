@@ -72,6 +72,16 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                         )}
                     </Link>
 
+                    {tenant_auth && (
+                        <Link 
+                            href={route('tenant.orders.index')} 
+                            prefetch
+                            className="group relative flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 transition-all hover:bg-neutral-200 cursor-pointer z-10"
+                        >
+                            <ShoppingBag className="h-5 w-5 text-neutral-600 transition-colors group-hover:text-neutral-900" />
+                        </Link>
+                    )}
+
                     {tenant_auth ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -104,7 +114,7 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href="#" className="cursor-pointer">
+                                    <Link href={route('tenant.orders.index')} className="cursor-pointer">
                                         <ShoppingBag className="mr-2 h-4 w-4" />
                                         <span>My Orders</span>
                                     </Link>
@@ -151,7 +161,7 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                                 <DropdownMenuContent align="start" className="w-48">
                                     {category.children.map(child => (
                                         <DropdownMenuItem key={child.id} asChild>
-                                            <Link href="#" className="cursor-pointer w-full">
+                                            <Link href={route('tenant.category.show', child.slug)} className="cursor-pointer w-full">
                                                 {child.name}
                                             </Link>
                                         </DropdownMenuItem>
@@ -161,7 +171,7 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                         ) : (
                             <Link
                                 key={category.id}
-                                href="#"
+                                href={route('tenant.category.show', category.slug)}
                                 className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors whitespace-nowrap"
                             >
                                 {category.name}

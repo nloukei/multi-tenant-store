@@ -21,7 +21,7 @@ export function ProductCard({ product, currency = 'USD' }: { product: Product, c
     }).format(Number(product.price));
 
     return (
-        <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-all hover:shadow-xl hover:border-black/5">
+        <div className="group relative flex flex-col overflow-hidden border border-neutral-200 bg-white transition-all hover:border-black/20">
             {/* Image section - clickable */}
             <Link href={`/products/${(product as any).slug || product.id}`} prefetch className="aspect-square overflow-hidden bg-neutral-50 relative block">
                 {product.image_url ? (
@@ -58,7 +58,7 @@ export function ProductCard({ product, currency = 'USD' }: { product: Product, c
                     </div>
                     
                     <PrimaryButton 
-                        className="mt-5 w-full rounded-xl py-6 text-sm font-bold shadow-sm transition-all active:scale-[0.98] hover:shadow-md"
+                        className="mt-5 w-full rounded-none py-6 text-sm font-bold shadow-sm transition-all active:scale-[0.98] hover:shadow-md"
                         onClick={() => {
                             addToCart(product);
                             toast.success('Added to cart!', {

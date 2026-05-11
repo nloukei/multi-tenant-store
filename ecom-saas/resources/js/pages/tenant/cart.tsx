@@ -4,6 +4,9 @@ import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, CreditCard } from 'lucide-
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/skeletons/skeleton';
+import axios from 'axios';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
     tenant: any;
@@ -11,8 +14,37 @@ interface Props {
 
 export default function CartPage({ tenant }: Props) {
     const { cart, removeFromCart, updateQuantity, totalPrice, totalItems, isLoaded } = useCart(tenant.id);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
     const accent = tenant.primary_color;
     const currency = tenant.currency || 'USD';
+
+    const handleCheckout = async () => {
+        if (cart.length === 0) return;
+
+        setIsCheckingOut(true);
+        try {
+            const response = await axios.post(route('tenant.checkout'), {
+                items: cart.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image_url: item.image_url,
+                })),
+                currency: currency,
+            });
+
+            if (response.data.url) {
+                window.location.href = response.data.url;
+            } else {
+                toast.error('Failed to create checkout session');
+            }
+        } catch (error: any) {
+            console.error('Checkout error:', error);
+            toast.error(error.response?.data?.error || 'An error occurred during checkout');
+        } finally {
+            setIsCheckingOut(false);
+        }
+    };
 
     const formatPrice = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -135,9 +167,14 @@ export default function CartPage({ tenant }: Props) {
                                         <span className="text-2xl font-black" style={{ color: accent }}>{formatPrice(totalPrice)}</span>
                                     </div>
                                 </div>
-                                <Button className="w-full rounded-xl py-6 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]" style={{ backgroundColor: accent }}>
+                                <Button 
+                                    onClick={handleCheckout}
+                                    disabled={isCheckingOut || cart.length === 0}
+                                    className="w-full rounded-xl py-6 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]" 
+                                    style={{ backgroundColor: accent }}
+                                >
                                     <CreditCard className="mr-2 h-5 w-5" />
-                                    Checkout
+                                    {isCheckingOut ? 'Processing...' : 'Checkout'}
                                 </Button>
                                 <p className="text-[10px] text-center text-neutral-400 mt-4 uppercase tracking-widest font-bold">
                                     Secure Payment Powered by {tenant.store_name}

@@ -461,4 +461,42 @@ class StoreController extends Controller
 
         return redirect()->back()->with('message', 'Promo deleted successfully.');
     }
+    // ========================================
+    // ORDER MANAGEMENT
+    // ========================================
+
+    // View and manage store orders
+    public function orders($id)
+    {
+        $tenant = Tenant::findOrFail($id);
+
+        $tenant->run(function () use (&$orders) {
+            $orders = \App\Models\Order::with(['items', 'customer'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->toArray();
+        });
+
+        return Inertia::render('stores/orders', [
+            'tenant' => $tenant,
+            'orders' => $orders,
+        ]);
+    }
+
+    // Update order status
+    public function updateOrderStatus(Request $request, $id, $orderId)
+    {
+        $tenant = Tenant::findOrFail($id);
+        $validated = $request->validate([
+            'status' => 'required|in:pending,preparing,shipping,arrived,cancelled'
+        ]);
+
+        $tenant->run(function () use ($validated, $orderId) {
+            \App\Models\Order::findOrFail($orderId)->update([
+                'status' => $validated['status']
+            ]);
+        });
+
+        return redirect()->back()->with('message', 'Order status updated successfully.');
+    }
 }

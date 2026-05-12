@@ -51,7 +51,8 @@ COPY --from=composer-builder /app .
 COPY --from=node-builder /app/public/build ./public/build
 
 # Set Permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Copy and Fix Entrypoint
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

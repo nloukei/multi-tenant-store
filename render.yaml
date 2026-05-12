@@ -1,10 +1,9 @@
 services:
   - type: web
     name: ecom-saas-web
-    env: php
+    env: docker
     plan: free
-    buildCommand: ./build.sh
-    startCommand: vendor/bin/heroku-php-apache2 public/
+
     envVars:
       - key: APP_ENV
         value: production

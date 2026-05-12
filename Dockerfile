@@ -9,10 +9,8 @@ RUN npm run build
 # Stage 2: Install PHP Dependencies
 FROM composer:2 AS composer-builder
 WORKDIR /app
-COPY composer*.json ./
-RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --optimize-autoloader
 COPY . .
-RUN composer dump-autoload --no-dev --optimize-autoloader --no-scripts
+RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --optimize-autoloader
 
 # Stage 3: Final Image
 FROM php:8.3-fpm-alpine

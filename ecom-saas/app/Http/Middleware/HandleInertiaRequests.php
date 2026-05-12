@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                 'email' => Auth::guard('customer')->user()?->email,
                 'role' => Auth::guard('customer')->user()?->role,
                 'name' => Auth::guard('customer')->user()?->name,
+                'saved_locations' => Auth::guard('customer')->user()?->saved_locations ?? [],
             ] : null,
             // Closure: resolved when Inertia builds the page (after tenancy middleware has run).
             'tenant' => fn (): ?array => tenant() ? [

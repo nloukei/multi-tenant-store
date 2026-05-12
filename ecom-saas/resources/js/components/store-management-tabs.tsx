@@ -46,7 +46,11 @@ export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabs
     const handleTabClick = (tabId: 'settings' | 'products' | 'categories' | 'promos' | 'orders', href: string) => {
         if (tabId === activeTab) return; // already here, don't navigate
         setNavigatingTo(tabId);
-        router.visit(href);
+        router.visit(href, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['products', 'categories', 'promos', 'tenant'],
+        });
     };
 
     return (

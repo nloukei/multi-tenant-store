@@ -58,6 +58,7 @@ class CheckoutController extends Controller
                 'cancel_url' => route('tenant.checkout.cancel', [], true),
                 'metadata' => [
                     'tenant_id' => tenant('id'),
+                    'customer_location' => $request->input('customer_location'),
                 ],
             ]);
 
@@ -92,6 +93,7 @@ class CheckoutController extends Controller
                         'status' => 'preparing',
                         'total_amount' => $sessionData->amount_total,
                         'currency' => $sessionData->currency,
+                        'customer_location' => $sessionData->metadata->customer_location ?? null,
                     ]
                 );
 

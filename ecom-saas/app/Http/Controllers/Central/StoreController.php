@@ -42,8 +42,17 @@ class StoreController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $tenant->run(function () use (&$products, &$categories, &$promos) {
+            $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
+            $categories = \App\Models\Category::orderBy('name')->get()->toArray();
+            $promos = \App\Models\Promo::orderBy('created_at', 'desc')->get()->toArray();
+        });
+
         return Inertia::render('stores/edit', [
-            'tenant' => $tenant
+            'tenant' => $tenant,
+            'products' => $products,
+            'categories' => $categories,
+            'promos' => $promos,
         ]);
     }
 
@@ -52,17 +61,18 @@ class StoreController extends Controller
     {
         $tenant = Tenant::findOrFail($id);
         
-        $tenant->run(function () use (&$products, &$categories) {
+        $tenant->run(function () use (&$products, &$categories, &$promos) {
             $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
             $categories = \App\Models\Category::orderBy('name')->get()->toArray();
+            $promos = \App\Models\Promo::orderBy('created_at', 'desc')->get()->toArray();
         });
 
         return Inertia::render('stores/products', [
             'tenant' => $tenant,
             'products' => $products,
             'categories' => $categories,
+            'promos' => $promos,
         ]);
-
     }
 
     // Create a new product for a store
@@ -156,13 +166,17 @@ class StoreController extends Controller
     {
         $tenant = Tenant::findOrFail($id);
         
-        $tenant->run(function () use (&$categories) {
-            $categories = \App\Models\Category::with('parent')->orderBy('name')->get()->toArray();
+        $tenant->run(function () use (&$products, &$categories, &$promos) {
+            $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
+            $categories = \App\Models\Category::orderBy('name')->get()->toArray();
+            $promos = \App\Models\Promo::orderBy('created_at', 'desc')->get()->toArray();
         });
 
         return Inertia::render('stores/categories', [
             'tenant' => $tenant,
+            'products' => $products,
             'categories' => $categories,
+            'promos' => $promos,
         ]);
     }
 
@@ -357,12 +371,16 @@ class StoreController extends Controller
     {
         $tenant = Tenant::findOrFail($id);
 
-        $tenant->run(function () use (&$promos) {
+        $tenant->run(function () use (&$products, &$categories, &$promos) {
+            $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
+            $categories = \App\Models\Category::orderBy('name')->get()->toArray();
             $promos = \App\Models\Promo::orderBy('created_at', 'desc')->get()->toArray();
         });
 
         return Inertia::render('stores/promos', [
             'tenant' => $tenant,
+            'products' => $products,
+            'categories' => $categories,
             'promos' => $promos,
         ]);
     }

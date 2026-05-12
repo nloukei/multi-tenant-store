@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Package, Truck, CheckCircle2, Clock, XCircle, ChevronDown } from 'lucide-react';
+import { Package, Truck, CheckCircle2, Clock, XCircle, ChevronDown, MapPin } from 'lucide-react';
 import { StoreManagementTabs } from '@/components/store-management-tabs';
 import { toast } from 'sonner';
 
@@ -22,6 +22,7 @@ interface Order {
         name: string;
         email: string;
     };
+    customer_location?: string | null;
 }
 
 interface Props {
@@ -96,11 +97,23 @@ export default function AdminOrders({ tenant, orders }: Props) {
                                                 <div>
                                                     <h3 className="font-black text-lg">Order #{order.id}</h3>
                                                     <p className="text-sm text-neutral-500">{formatDate(order.created_at)}</p>
-                                                    {order.customer && (
-                                                        <div className="mt-2 text-sm bg-neutral-100 inline-block px-3 py-1.5 rounded-lg border border-neutral-200">
-                                                            <span className="font-bold">{order.customer.name}</span> &middot; {order.customer.email}
-                                                        </div>
-                                                    )}
+                                                    <div className="mt-2 flex flex-wrap gap-2 items-center">
+                                                        {order.customer ? (
+                                                            <div className="text-sm bg-neutral-100 inline-flex items-center px-3 py-1.5 rounded-lg border border-neutral-200">
+                                                                <span className="font-bold mr-1">{order.customer.name}</span> &middot; <span className="ml-1">{order.customer.email}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-sm bg-neutral-100 inline-flex items-center px-3 py-1.5 rounded-lg border border-neutral-200">
+                                                                <span className="font-bold italic text-neutral-500">Guest Checkout</span>
+                                                            </div>
+                                                        )}
+                                                        {order.customer_location && (
+                                                            <div className="text-sm bg-blue-50 text-blue-800 inline-flex items-center px-3 py-1.5 rounded-lg border border-blue-100 font-medium">
+                                                                <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0 text-blue-600" />
+                                                                <span>{order.customer_location}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-1">Total</p>

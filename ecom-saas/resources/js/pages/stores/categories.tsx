@@ -30,11 +30,11 @@ export default function StoreCategories({ tenant, categories }: { tenant: any, c
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
 
-    const breadcrumbs: BreadcrumbItem[] = [
+    const breadcrumbs: BreadcrumbItem[] = useMemo(() => [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Manage Store', href: route('stores.edit', tenant.id) },
         { title: 'Categories', href: '#' },
-    ];
+    ], [tenant.id]);
 
     // Nest categories for hierarchical display
     const categoryTree = useMemo(() => {
@@ -128,118 +128,123 @@ export default function StoreCategories({ tenant, categories }: { tenant: any, c
 
     };
 
+    const mainContent = useMemo(() => (
+        <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
+            <div className="flex items-center justify-between border-b pb-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Store Management</h1>
+                    <p className="text-muted-foreground mt-1">
+                        {tenant.store_name} ({tenant.id})
+                    </p>
+                </div>
+                
+                <Sheet open={open} onOpenChange={setOpen}>
+                    <Button onClick={handleAdd} className="rounded-full font-bold">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Category
+                    </Button>
+                    <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                        <SheetHeader>
+                            <SheetTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</SheetTitle>
+                            <SheetDescription>
+                                {editingCategory ? 'Modify your category details.' : 'Create a new category to organize your products.'}
+                            </SheetDescription>
+                        </SheetHeader>
+                        <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Category Name *</Label>
+                                <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} required placeholder="e.g. Laptops" />
+                                <InputError message={errors.name} />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                                <Label htmlFor="parent_id">Parent Category (Optional)</Label>
+                                <select 
+                                    id="parent_id"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={data.parent_id}
+                                    onChange={e => setData('parent_id', e.target.value)}
+                                >
+                                    <option value="">None (Top Level)</option>
+                                    {categories
+                                        .filter(c => !c.parent_id && c.id !== editingCategory?.id)
+                                        .map((cat) => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))
+                                    }
+                                </select>
+                                <InputError message={errors.parent_id} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description</Label>
+                                <textarea 
+                                    id="description" 
+                                    className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={data.description} 
+                                    onChange={e => setData('description', e.target.value)} 
+                                    placeholder="Optional description of the category..."
+                                />
+                                <InputError message={errors.description} />
+                            </div>
+
+                            <SheetFooter className="mt-4">
+                                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                                <Button type="submit" disabled={processing}>
+                                    {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {processing ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                                </Button>
+                            </SheetFooter>
+                        </form>
+                    </SheetContent>
+                </Sheet>
+            </div>
+
+            <StoreManagementTabs tenantId={tenant.id} activeTab="categories" />
+
+
+            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+                <table className="w-full text-sm text-left">
+                    <thead className="bg-neutral-50 text-muted-foreground border-b">
+                        <tr>
+                            <th className="px-6 py-4 font-semibold uppercase tracking-wider">Category Hierarchy</th>
+                            <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                        {categoryTree.length > 0 ? (
+                            categoryTree.map((category) => (
+                                <CategoryRow 
+                                    key={category.id} 
+                                    category={category} 
+                                    level={0}
+                                    expandedIds={expandedIds}
+                                    onToggle={toggleExpand}
+                                    onEdit={handleEdit}
+                                    onDelete={setDeleteId}
+                                />
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={2} className="px-6 py-12 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Layers className="h-10 w-10 text-neutral-200" />
+                                        <p className="text-muted-foreground">No categories found for this store.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    ), [tenant, categories, categoryTree, open, data, processing, errors, expandedIds]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Manage Categories - ${tenant.store_name}`} />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
-                <div className="flex items-center justify-between border-b pb-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Store Management</h1>
-                        <p className="text-muted-foreground mt-1">
-                            {tenant.store_name} ({tenant.id})
-                        </p>
-                    </div>
-                    
-                    <Sheet open={open} onOpenChange={setOpen}>
-                        <Button onClick={handleAdd} className="rounded-full font-bold">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Category
-                        </Button>
-                        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-                            <SheetHeader>
-                                <SheetTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</SheetTitle>
-                                <SheetDescription>
-                                    {editingCategory ? 'Modify your category details.' : 'Create a new category to organize your products.'}
-                                </SheetDescription>
-                            </SheetHeader>
-                            <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Category Name *</Label>
-                                    <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} required placeholder="e.g. Laptops" />
-                                    <InputError message={errors.name} />
-                                </div>
-                                
-                                <div className="grid gap-2">
-                                    <Label htmlFor="parent_id">Parent Category (Optional)</Label>
-                                    <select 
-                                        id="parent_id"
-                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        value={data.parent_id}
-                                        onChange={e => setData('parent_id', e.target.value)}
-                                    >
-                                        <option value="">None (Top Level)</option>
-                                        {categories
-                                            .filter(c => !c.parent_id && c.id !== editingCategory?.id)
-                                            .map((cat) => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    <InputError message={errors.parent_id} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="description">Description</Label>
-                                    <textarea 
-                                        id="description" 
-                                        className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        value={data.description} 
-                                        onChange={e => setData('description', e.target.value)} 
-                                        placeholder="Optional description of the category..."
-                                    />
-                                    <InputError message={errors.description} />
-                                </div>
-
-                                <SheetFooter className="mt-4">
-                                    <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                                    <Button type="submit" disabled={processing}>
-                                        {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        {processing ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
-                                    </Button>
-                                </SheetFooter>
-                            </form>
-                        </SheetContent>
-                    </Sheet>
-                </div>
-
-                <StoreManagementTabs tenantId={tenant.id} activeTab="categories" />
-
-
-                <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-neutral-50 text-muted-foreground border-b">
-                            <tr>
-                                <th className="px-6 py-4 font-semibold uppercase tracking-wider">Category Hierarchy</th>
-                                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {categoryTree.length > 0 ? (
-                                categoryTree.map((category) => (
-                                    <CategoryRow 
-                                        key={category.id} 
-                                        category={category} 
-                                        level={0}
-                                        expandedIds={expandedIds}
-                                        onToggle={toggleExpand}
-                                        onEdit={handleEdit}
-                                        onDelete={setDeleteId}
-                                    />
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={2} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Layers className="h-10 w-10 text-neutral-200" />
-                                            <p className="text-muted-foreground">No categories found for this store.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            
+            {mainContent}
 
             <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
                 <DialogContent>

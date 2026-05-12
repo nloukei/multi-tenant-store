@@ -1,11 +1,12 @@
 import { TopBar } from '@/components/tenant/top-bar';
-import { Head, Link } from '@inertiajs/react';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, CreditCard } from 'lucide-react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, CreditCard, MapPin, Check } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/skeletons/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -13,13 +14,74 @@ interface Props {
 }
 
 export default function CartPage({ tenant }: Props) {
+    const { tenant_auth } = usePage<any>().props;
     const { cart, removeFromCart, updateQuantity, totalPrice, totalItems, isLoaded } = useCart(tenant.id);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [customerLocation, setCustomerLocation] = useState('');
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [isAddingLocation, setIsAddingLocation] = useState(false);
+    const [newLocationInput, setNewLocationInput] = useState('');
+    const [isSavingLocation, setIsSavingLocation] = useState(false);
+
+    const savedLocations: string[] = tenant_auth?.saved_locations || [];
+
+    // Automatically select the first saved location if none is selected
+    useEffect(() => {
+        if (!customerLocation && savedLocations.length > 0) {
+            setCustomerLocation(savedLocations[0]);
+        }
+        if (savedLocations.length === 0) {
+            setIsAddingLocation(true);
+        }
+    }, [savedLocations, customerLocation]);
     const accent = tenant.primary_color;
     const currency = tenant.currency || 'USD';
 
-    const handleCheckout = async () => {
+    const handleInitiateCheckout = () => {
         if (cart.length === 0) return;
+
+        if (!tenant_auth) {
+            toast.error('Please login to proceed with checkout');
+            router.visit(route('tenant.login'));
+            return;
+        }
+
+        setShowPaymentModal(true);
+    };
+
+    const handleSaveNewLocation = () => {
+        if (!newLocationInput.trim()) {
+            toast.error('Please enter a valid delivery address/location');
+            return;
+        }
+
+        setIsSavingLocation(true);
+        router.post(route('tenant.locations.store'), {
+            location: newLocationInput.trim(),
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setCustomerLocation(newLocationInput.trim());
+                setNewLocationInput('');
+                setIsAddingLocation(false);
+                toast.success('Delivery location saved successfully');
+                setIsSavingLocation(false);
+            },
+            onError: (errors: any) => {
+                toast.error(errors.location || 'Failed to save location');
+                setIsSavingLocation(false);
+            }
+        });
+    };
+
+    const handleProcessPayment = async () => {
+        if (cart.length === 0) return;
+
+        if (!customerLocation.trim()) {
+            toast.error('Please provide your delivery location before checking out');
+            return;
+        }
 
         setIsCheckingOut(true);
         try {
@@ -31,6 +93,7 @@ export default function CartPage({ tenant }: Props) {
                     image_url: item.image_url,
                 })),
                 currency: currency,
+                customer_location: customerLocation.trim(),
             });
 
             if (response.data.url) {
@@ -153,6 +216,26 @@ export default function CartPage({ tenant }: Props) {
                         <div className="lg:col-span-1">
                             <div className="bg-white border border-neutral-200 rounded-2xl p-6 sticky top-24 shadow-sm">
                                 <h2 className="text-xl font-black mb-6">Order Summary</h2>
+
+                                {/* Chosen Location Summary */}
+                                <div className="mb-6 bg-neutral-50 p-4 rounded-xl border border-neutral-200 shadow-xs">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+                                            <MapPin className="w-3.5 h-3.5 text-neutral-400" /> Delivery Location
+                                        </span>
+                                        {customerLocation && (
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                                Selected
+                                            </span>
+                                        )}
+                                    </div>
+                                    {customerLocation ? (
+                                        <p className="text-sm font-bold text-neutral-900 line-clamp-2">{customerLocation}</p>
+                                    ) : (
+                                        <p className="text-xs italic text-neutral-400">None selected (Choose at next step)</p>
+                                    )}
+                                </div>
+
                                 <div className="space-y-4 mb-6 text-sm">
                                     <div className="flex justify-between text-neutral-500">
                                         <span>Subtotal</span>
@@ -168,13 +251,13 @@ export default function CartPage({ tenant }: Props) {
                                     </div>
                                 </div>
                                 <Button 
-                                    onClick={handleCheckout}
-                                    disabled={isCheckingOut || cart.length === 0}
+                                    onClick={handleInitiateCheckout}
+                                    disabled={cart.length === 0}
                                     className="w-full rounded-xl py-6 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]" 
                                     style={{ backgroundColor: accent }}
                                 >
                                     <CreditCard className="mr-2 h-5 w-5" />
-                                    {isCheckingOut ? 'Processing...' : 'Checkout'}
+                                    {tenant_auth ? 'Proceed to Payment' : 'Login to Checkout'}
                                 </Button>
                                 <p className="text-[10px] text-center text-neutral-400 mt-4 uppercase tracking-widest font-bold">
                                     Secure Payment Powered by {tenant.store_name}
@@ -195,6 +278,122 @@ export default function CartPage({ tenant }: Props) {
                     </div>
                 )}
             </main>
+
+            {/* Payment & Delivery Inputs Modal */}
+            <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+                <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-black">Payment & Delivery Details</DialogTitle>
+                        <DialogDescription>
+                            Please choose or add your final delivery destination before paying securely.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="my-2 space-y-4">
+                        {/* Saved Locations Selector */}
+                        {savedLocations.length > 0 && (
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500">
+                                    Saved Locations
+                                </label>
+                                <div className="grid gap-2 max-h-48 overflow-y-auto pr-1">
+                                    {savedLocations.map((loc, idx) => {
+                                        const isSelected = customerLocation === loc;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => {
+                                                    setCustomerLocation(loc);
+                                                    setIsAddingLocation(false);
+                                                }}
+                                                className={`w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3 ${
+                                                    isSelected 
+                                                        ? 'bg-primary/5 border-primary ring-1 ring-primary' 
+                                                        : 'bg-white border-neutral-200 hover:bg-neutral-50'
+                                                }`}
+                                            >
+                                                <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                                    isSelected ? 'bg-primary border-primary text-white' : 'border-neutral-300'
+                                                }`}>
+                                                    {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                                </div>
+                                                <span className={`text-sm font-medium line-clamp-2 ${isSelected ? 'text-primary font-bold' : 'text-neutral-700'}`}>
+                                                    {loc}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Add Location Button / Form Toggle */}
+                        {!isAddingLocation ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsAddingLocation(true)}
+                                className="w-full rounded-xl border-dashed border-2 py-5 text-neutral-600 hover:text-neutral-900 font-bold"
+                            >
+                                <Plus className="w-4 h-4 mr-2" /> Add New Delivery Location
+                            </Button>
+                        ) : (
+                            <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 space-y-3">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700">
+                                    New Delivery Location
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={newLocationInput}
+                                    onChange={(e) => setNewLocationInput(e.target.value)}
+                                    placeholder="Enter your complete delivery address, street, landmarks..."
+                                    className="w-full text-sm bg-white border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-neutral-300 resize-none"
+                                />
+                                <div className="flex gap-2 justify-end">
+                                    {savedLocations.length > 0 && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setIsAddingLocation(false)}
+                                            className="rounded-lg text-xs"
+                                        >
+                                            Cancel
+                                        </Button>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={handleSaveNewLocation}
+                                        disabled={isSavingLocation || !newLocationInput.trim()}
+                                        className="rounded-lg text-xs px-4 font-bold"
+                                        style={{ backgroundColor: accent }}
+                                    >
+                                        {isSavingLocation ? 'Saving...' : 'Save Location'}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-3 pt-4 border-t mt-2">
+                        <div className="flex justify-between items-center py-1">
+                            <span className="text-sm font-bold text-neutral-600">Total Amount Payable</span>
+                            <span className="text-lg font-black" style={{ color: accent }}>{formatPrice(totalPrice)}</span>
+                        </div>
+                        <Button
+                            onClick={handleProcessPayment}
+                            disabled={isCheckingOut || !customerLocation}
+                            className="w-full rounded-xl py-6 font-bold shadow-md transition-all active:scale-[0.98]"
+                            style={{ backgroundColor: accent }}
+                        >
+                            <CreditCard className="mr-2 h-5 w-5" />
+                            {isCheckingOut ? 'Redirecting to Stripe...' : 'Pay Securely with Stripe'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

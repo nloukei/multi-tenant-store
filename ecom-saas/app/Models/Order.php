@@ -12,6 +12,7 @@ class Order extends Model
         'status',
         'total_amount',
         'currency',
+        'customer_location',
     ];
 
     public function items()

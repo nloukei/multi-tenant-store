@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: ecom-saas-web
+    env: php
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: vendor/bin/heroku-php-apache2 public/
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: errorlog
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: ecom-saas-db
+          property: connectionString
+
+databases:
+  - name: ecom-saas-db
+    plan: free
+    databaseName: ecom_saas
+    user: ecom_saas_user

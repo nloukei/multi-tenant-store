@@ -156,6 +156,10 @@ Route::middleware([
         Route::get('/orders', [\App\Http\Controllers\Tenant\OrderController::class, 'index'])
             ->name('tenant.orders.index');
 
+        // Customer Saved Locations
+        Route::post('/locations', [\App\Http\Controllers\Tenant\CustomerLocationController::class, 'store'])
+            ->name('tenant.locations.store');
+
         // Admin-only dashboard (requires role='admin')
         Route::middleware('tenant_admin')->group(function () {
             Route::get('/admin/overview', function () {

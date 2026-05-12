@@ -1,6 +1,6 @@
 import { TopBar } from '@/components/tenant/top-bar';
 import { Head, Link } from '@inertiajs/react';
-import { Package, Truck, CheckCircle2, Clock, XCircle, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Package, Truck, CheckCircle2, Clock, XCircle, ChevronRight, ShoppingBag, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OrderItem {
@@ -18,6 +18,7 @@ interface Order {
     currency: string;
     created_at: string;
     items: OrderItem[];
+    customer_location?: string | null;
 }
 
 interface Props {
@@ -86,6 +87,12 @@ export default function OrderHistory({ tenant, orders }: Props) {
                                             <StatusBadge status={order.status} />
                                         </div>
                                         <p className="text-xs text-neutral-500 font-medium">{formatDate(order.created_at)}</p>
+                                        {order.customer_location && (
+                                            <div className="mt-2 text-xs bg-neutral-100 text-neutral-700 inline-flex items-center px-2.5 py-1 rounded-md font-medium">
+                                                <MapPin className="w-3 h-3 mr-1 shrink-0 text-neutral-500" />
+                                                <span>{order.customer_location}</span>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="text-left md:text-right w-full md:w-auto bg-neutral-50 md:bg-transparent p-3 md:p-0 rounded-xl">
                                         <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest mb-1">Total Amount</p>

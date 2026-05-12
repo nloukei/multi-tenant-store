@@ -22,6 +22,7 @@ class Customer extends Authenticatable
         'email',    // Customer's email
         'password', // Customer's password (auto-hashed)
         'role',     // Customer's role: 'admin' or 'customer'
+        'saved_locations', // Array of saved delivery locations
     ];
 
     // Hide these fields when converting to JSON (for security)
@@ -35,6 +36,7 @@ class Customer extends Authenticatable
     {
         return [
             'password' => 'hashed', // Automatically hash password when setting it
+            'saved_locations' => 'array', // Automatically cast JSON to PHP array
         ];
     }
 }

@@ -27,7 +27,8 @@ RUN apk add --no-cache \
     unzip \
     git \
     icu-dev \
-    oniguruma-dev
+    oniguruma-dev \
+    dos2unix
 
 # Install PHP Extensions
 RUN docker-php-ext-install \
@@ -52,9 +53,9 @@ COPY --from=node-builder /app/public/build ./public/build
 # Set Permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Copy Entrypoint
+# Copy and Fix Entrypoint
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN dos2unix /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose Port
 EXPOSE 80

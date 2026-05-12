@@ -27,6 +27,8 @@ return [
     'central_domains' => [
         '127.0.0.1',
         'localhost',
+        'multi-tenant-store-vfbr.onrender.com',
+        parse_url(env('APP_URL', ''), PHP_URL_HOST),
     ],
 
     /**

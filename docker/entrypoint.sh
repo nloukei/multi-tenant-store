@@ -11,6 +11,13 @@ until php artisan db:monitor || [ $count -eq $max_retries ]; do
   count=$((count + 1))
 done
 
+# Clear and Cache configuration/routes
+echo "Caching configuration..."
+php artisan package:discover --ansi
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
 # Run migrations
 echo "Running migrations..."
 php artisan migrate --force

@@ -12,7 +12,7 @@ WORKDIR /app
 COPY composer*.json ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --optimize-autoloader
 COPY . .
-RUN composer dump-autoload --no-dev --optimize-autoloader
+RUN composer dump-autoload --no-dev --optimize-autoloader --no-scripts
 
 # Stage 3: Final Image
 FROM php:8.3-fpm-alpine

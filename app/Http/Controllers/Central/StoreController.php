@@ -329,7 +329,9 @@ class StoreController extends Controller
             ]);
 
             try {
-                $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+                // Use the current request host as the base for the tenant subdomain
+                // This ensures domains work correctly across local, staging, and production
+                $centralDomain = $request->getHost();
                 $domainName = $validated['subdomain'] . '.' . $centralDomain;
 
                 Log::info('Creating domain record: ' . $domainName);

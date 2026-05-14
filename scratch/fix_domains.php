@@ -9,12 +9,17 @@ $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 $tenants = Tenant::all();
 foreach ($tenants as $tenant) {
-    if ($tenant->domains()->count() === 0) {
-        $domain = $tenant->id . '.tenantly.software';
+    $domain = $tenant->id . '.tenantly.software';
+    
+    $exists = Domain::where('domain', $domain)->exists();
+    
+    if (!$exists) {
         echo "Creating domain: $domain for tenant: {$tenant->id}\n";
         Domain::create([
             'domain' => $domain,
             'tenant_id' => $tenant->id,
         ]);
+    } else {
+        echo "Domain $domain already exists for tenant: {$tenant->id}\n";
     }
 }

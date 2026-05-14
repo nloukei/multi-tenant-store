@@ -28,13 +28,16 @@ class StoreController extends Controller
     // Render the store creation form
     public function create()
     {
-        return Inertia::render('stores/create');
+        $plans = Plan::query()->orderBy('price', 'asc')->get();
+        return Inertia::render('stores/create', [
+            'plans' => $plans,
+        ]);
     }
 
     // Render the store edit/settings form
     public function edit(Request $request, string $id)
     {
-        $tenant = Tenant::with('domains')->findOrFail($id);
+        $tenant = Tenant::with(['domains', 'plan'])->findOrFail($id);
         
         // Authorization check: Only owner or super admin
         $user = $request->user();
@@ -303,11 +306,12 @@ class StoreController extends Controller
             $user->forceFill(['role' => $user::ROLE_ADMIN])->save();
         }
 
-        // Get the default 'free' plan for new stores
-        $freePlan = Plan::query()->where('slug', 'free')->firstOrFail();
-
         // Validate the store creation data
         $validated = $request->validated();
+
+        // Determine selected plan (fallback to free)
+        $planSlug = $validated['plan_slug'] ?? 'free';
+        $selectedPlan = Plan::query()->where('slug', $planSlug)->firstOrFail();
 
         try {
             Log::info('Creating tenant record...');
@@ -316,7 +320,7 @@ class StoreController extends Controller
                 'id' => $validated['subdomain'],
                 'store_name' => $validated['store_name'],
                 'user_id' => $user->id,
-                'plan_id' => $freePlan->id,
+                'plan_id' => $selectedPlan->id,
                 'trial_ends_at' => now()->addDays(14),
                 'primary_color' => $request->input('primary_color', '#1d4ed8'),
                 'logo_url' => $request->filled('logo_url') ? $request->string('logo_url')->toString() : null,
@@ -325,10 +329,13 @@ class StoreController extends Controller
             ]);
 
             try {
-                Log::info('Creating domain record: ' . $validated['subdomain'] . '.localhost');
+                $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+                $domainName = $validated['subdomain'] . '.' . $centralDomain;
+
+                Log::info('Creating domain record: ' . $domainName);
                 // Explicitly create domain record using the model
                 \Stancl\Tenancy\Database\Models\Domain::create([
-                    'domain' => $validated['subdomain'].'.localhost',
+                    'domain' => $domainName,
                     'tenant_id' => $tenant->id,
                 ]);
 
@@ -355,7 +362,14 @@ class StoreController extends Controller
             }
 
             Log::info('Store creation completed successfully.');
-            return redirect()->back()->with('message', 'Store created successfully!');
+            
+            $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+            $domainName = $validated['subdomain'] . '.' . $centralDomain;
+
+            return redirect()->route('stores.edit', $tenant->id)->with([
+                'message' => "Store created successfully! Your 14-day {$selectedPlan->name} Plan trial is now active.",
+                'new_store_domain' => $domainName
+            ]);
         } catch (\Exception $e) {
             Log::error('Store creation failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Tenant cannot be created. Reason: ' . $e->getMessage());
@@ -516,5 +530,73 @@ class StoreController extends Controller
         });
 
         return redirect()->back()->with('message', 'Order status updated successfully.');
+    }
+
+    // ========================================
+    // SUBSCRIPTION & PLAN MANAGEMENT
+    // ========================================
+
+    // Render the store plan management page
+    public function editPlan(Request $request, string $id)
+    {
+        $tenant = Tenant::with(['domains', 'plan'])->findOrFail($id);
+        
+        // Authorization check
+        $user = $request->user();
+        if (!$user->isSuperAdmin() && $tenant->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $plans = Plan::query()->orderBy('price', 'asc')->get();
+
+        return Inertia::render('stores/plan', [
+            'tenant' => $tenant,
+            'plans' => $plans,
+        ]);
+    }
+
+    // Upgrade or switch subscription plan
+    public function updatePlan(Request $request, string $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        // Authorization check
+        $user = $request->user();
+        if (!$user->isSuperAdmin() && $tenant->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'plan_slug' => 'required|string|exists:plans,slug',
+        ]);
+
+        $selectedPlan = Plan::query()->where('slug', $validated['plan_slug'])->firstOrFail();
+
+        // Update plan and reset any pending cancellation status
+        $tenant->update([
+            'plan_id' => $selectedPlan->id,
+            'cancel_at_period_end' => false,
+        ]);
+
+        return redirect()->route('stores.edit', $tenant->id)->with('message', "Successfully upgraded to the {$selectedPlan->name} Plan!");
+    }
+
+    // Schedule subscription cancellation for next month
+    public function cancelPlan(Request $request, string $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        // Authorization check
+        $user = $request->user();
+        if (!$user->isSuperAdmin() && $tenant->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Set virtual attribute to cancel at period end (next month)
+        $tenant->update([
+            'cancel_at_period_end' => true,
+        ]);
+
+        return redirect()->back()->with('message', 'Subscription scheduled for cancellation. Your current plan benefits will remain fully active until next month.');
     }
 }

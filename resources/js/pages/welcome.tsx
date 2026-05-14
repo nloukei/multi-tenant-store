@@ -1,6 +1,7 @@
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { themes } from '../themes';
 
 function StoreLogo() {
     return (
@@ -102,23 +103,23 @@ export default function Welcome() {
                     .fade-up-3 { animation-delay: 0.3s; }
                     .fade-up-4 { animation-delay: 0.4s; }
                     .float-anim { animation: float 6s ease-in-out infinite; }
-                    .shimmer-text { background: linear-gradient(90deg, #a855f7, #6366f1, #ec4899, #a855f7); background-size: 200% auto; animation: shimmer 3s linear infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-                    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
+                    .shimmer-text { background: ${themes.gradients.shimmer}; background-size: 200% auto; animation: shimmer 3s linear infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+                    .glass { background: ${themes.colors.glass.background}; backdrop-filter: blur(16px); border: 1px solid ${themes.colors.glass.border}; }
                     .card-hover { transition: all 0.3s ease; }
                     .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
                 `}</style>
             </Head>
 
-            <div className="min-h-screen bg-[#09090b] text-white overflow-x-hidden">
+            <div className="min-h-screen text-white overflow-x-hidden" style={{ backgroundColor: themes.colors.background }}>
 
                 {/* Navbar */}
-                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#09090b]/90 backdrop-blur-xl border-b border-white/5 py-3' : 'py-5'}`}>
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'backdrop-blur-xl border-b border-white/5 py-3' : 'py-5'}`} style={{ backgroundColor: scrolled ? `${themes.colors.background}E6` : 'transparent' }}>
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-6">
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 p-1.5 text-white">
                                 <StoreLogo />
                             </div>
-                            <span className="text-lg font-bold tracking-tight">StoreForge</span>
+                            <span className="text-lg font-bold tracking-tight">Tenantly</span>
                         </div>
                         <div className="flex items-center gap-3">
                             {auth.user ? (
@@ -270,9 +271,9 @@ export default function Welcome() {
                             <div className="rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 p-1 text-white">
                                 <StoreLogo />
                             </div>
-                            <span className="text-sm font-semibold">StoreForge</span>
+                            <span className="text-sm font-semibold">Tenantly</span>
                         </div>
-                        <p className="text-sm text-white/30">&copy; {new Date().getFullYear()} StoreForge. Built with Laravel &amp; React.</p>
+                        <p className="text-sm text-white/30">&copy; {new Date().getFullYear()} Tenantly. Built with Laravel, Astro, &amp; React. This is a personal project only.</p>
                     </div>
                 </footer>
             </div>

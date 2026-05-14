@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
+import { themes } from '@/themes';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -32,7 +33,11 @@ export default function Register() {
     };
 
     return (
-        <AuthLayout title="Create an account" description="Enter your details below to create your account">
+        <AuthLayout 
+            title="Create an account" 
+            description="Enter your details below to create your account"
+            style={{ backgroundColor: themes.colors.background }}
+        >
             <Head title="Register" />
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
@@ -40,6 +45,7 @@ export default function Register() {
                         <Label htmlFor="name">Name</Label>
                         <Input
                             id="name"
+                            variant="dark"
                             type="text"
                             required
                             autoFocus
@@ -57,6 +63,7 @@ export default function Register() {
                         <Label htmlFor="email">Email address</Label>
                         <Input
                             id="email"
+                            variant="dark"
                             type="email"
                             required
                             tabIndex={2}
@@ -73,6 +80,7 @@ export default function Register() {
                         <Label htmlFor="password">Password</Label>
                         <Input
                             id="password"
+                            variant="dark"
                             type="password"
                             required
                             tabIndex={3}
@@ -89,6 +97,7 @@ export default function Register() {
                         <Label htmlFor="password_confirmation">Confirm password</Label>
                         <Input
                             id="password_confirmation"
+                            variant="dark"
                             type="password"
                             required
                             tabIndex={4}
@@ -101,15 +110,21 @@ export default function Register() {
                         <InputError message={errors.password_confirmation} />
                     </div>
 
-                    <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
+                    <Button 
+                        type="submit" 
+                        className="mt-2 w-full transition-all hover:opacity-90 hover:shadow-lg hover:shadow-violet-500/20" 
+                        tabIndex={5} 
+                        disabled={processing}
+                        style={{ background: themes.gradients.primary }}
+                    >
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
                 </div>
 
-                <div className="text-muted-foreground text-center text-sm">
+                <div className="text-center text-sm" style={{ color: themes.colors.text.secondary }}>
                     Already have an account?{' '}
-                    <TextLink href={route('login')} tabIndex={6}>
+                    <TextLink href={route('login')} tabIndex={6} style={{ color: themes.colors.primary.light }}>
                         Log in
                     </TextLink>
                 </div>

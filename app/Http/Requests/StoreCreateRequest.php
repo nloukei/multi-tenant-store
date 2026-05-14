@@ -33,7 +33,8 @@ class StoreCreateRequest extends FormRequest
                 'regex:/^[a-z0-9\-]+$/',
                 Rule::unique('tenants', 'id'),
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    $fullDomain = $value.'.localhost';
+                    $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+                    $fullDomain = $value . '.' . $centralDomain;
                     if (DB::table('domains')->where('domain', $fullDomain)->exists()) {
                         $fail('The subdomain has already been taken.');
                     }
@@ -43,6 +44,7 @@ class StoreCreateRequest extends FormRequest
             'logo_url' => ['nullable', 'string', 'max:2048'],
             'banner_text' => ['nullable', 'string', 'max:500'],
             'currency' => ['nullable', 'string', 'size:3'],
+            'plan_slug' => ['nullable', 'string', Rule::exists('plans', 'slug')],
         ];
     }
 }

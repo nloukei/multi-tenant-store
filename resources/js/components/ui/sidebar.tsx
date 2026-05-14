@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { themes } from '@/themes';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -125,6 +126,7 @@ const SidebarProvider = React.forwardRef<
                         {
                             '--sidebar-width': SIDEBAR_WIDTH,
                             '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+                            '--sidebar-ring': themes.colors.primary.light,
                             ...style,
                         } as React.CSSProperties
                     }
@@ -423,7 +425,7 @@ const SidebarMenuButton = React.forwardRef<
         isActive?: boolean;
         tooltip?: string | React.ComponentProps<typeof TooltipContent>;
     } & VariantProps<typeof sidebarMenuButtonVariants>
->(({ asChild = false, isActive = false, variant = 'default', size = 'default', tooltip, className, ...props }, ref) => {
+>(({ asChild = false, isActive = false, variant = 'default', size = 'default', tooltip, className, style, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
     const { isMobile, state } = useSidebar();
 
@@ -434,6 +436,7 @@ const SidebarMenuButton = React.forwardRef<
             data-size={size}
             data-active={isActive}
             className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+            style={isActive ? { color: themes.colors.primary.DEFAULT, ...style } : style}
             {...props}
         />
     );

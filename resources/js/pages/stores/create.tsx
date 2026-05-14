@@ -6,7 +6,8 @@ import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
-import { Store, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Store, CheckCircle2, AlertCircle, Check, Sparkles, ShieldCheck } from 'lucide-react';
+import { themes } from '@/themes';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,19 +21,30 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateStore() {
-    const { flash } = usePage<any>().props;
+    const { flash, plans = [], current_plan_slug, auth } = usePage<any>().props;
+    const currentPlanSlug = current_plan_slug || auth?.user?.plan?.slug || null;
+
     const { data, setData, post, processing, errors, reset } = useForm({
         store_name: '',
         subdomain: '',
         primary_color: '#1d4ed8',
         banner_text: '',
         logo_url: '',
+        plan_slug: currentPlanSlug || 'free',
     });
 
     const submitStore = (e: React.FormEvent) => {
         e.preventDefault();
         post(route('stores.store'), {
-            onSuccess: () => reset(),
+            onSuccess: (page: any) => {
+                if (page.props.flash.new_store_domain) {
+                    const protocol = window.location.protocol;
+                    const port = window.location.port ? ':' + window.location.port : '';
+                    const storeUrl = `${protocol}//${page.props.flash.new_store_domain}${port}`;
+                    window.open(storeUrl, '_blank');
+                }
+                reset();
+            },
         });
     };
 
@@ -63,7 +75,11 @@ export default function CreateStore() {
                     </Alert>
                 )}
 
-                <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
+                <div
+                    className="rounded-xl border bg-card text-card-foreground shadow-lg p-6 relative overflow-hidden"
+                    style={{ borderColor: themes.colors.glass?.border || 'rgba(255,255,255,0.1)' }}
+                >
+                    <div className="absolute top-0 left-0 right-0 h-1" style={{ background: themes.gradients.primary }} />
                     <form className="flex flex-col gap-6" onSubmit={submitStore}>
                         <div className="grid gap-2">
                             <Label htmlFor="store_name">Store name</Label>
@@ -88,7 +104,7 @@ export default function CreateStore() {
                                     placeholder="mystore"
                                     autoComplete="off"
                                 />
-                                <span className="text-muted-foreground font-mono text-sm">.localhost:8000</span>
+                                <span className="text-muted-foreground font-mono text-sm">.tenantly.software</span>
                             </div>
                             <InputError message={errors.subdomain} />
                         </div>
@@ -130,8 +146,120 @@ export default function CreateStore() {
                             <InputError message={errors.logo_url} />
                         </div>
 
+                        {/* Subscription Plan Selection */}
+                        <div className="grid gap-3 pt-2 border-t">
+                            <Label className="text-base font-semibold">Select Subscription Plan</Label>
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                {plans.map((plan: any) => {
+                                    const isSelected = data.plan_slug === plan.slug;
+                                    const isPro = plan.slug === 'pro';
+                                    const isCurrent = currentPlanSlug && plan.slug === currentPlanSlug;
+
+                                    return (
+                                        <div
+                                            key={plan.id}
+                                            onClick={() => setData('plan_slug', plan.slug)}
+                                            className={`relative flex flex-col justify-between rounded-xl border p-4 cursor-pointer transition-all duration-300 ${isSelected
+                                                ? 'ring-2 shadow-md bg-primary/5 scale-[1.02]'
+                                                : 'hover:border-primary/50 hover:bg-card/80'
+                                                }`}
+                                            style={{
+                                                borderColor: isSelected
+                                                    ? themes.colors.primary.DEFAULT
+                                                    : themes.colors.glass?.border || 'rgba(255,255,255,0.1)',
+                                            }}
+                                        >
+                                            {isCurrent && (
+                                                <span className="absolute -top-2.5 left-3 px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider shadow-sm bg-emerald-600 dark:bg-emerald-500">
+                                                    Current Plan
+                                                </span>
+                                            )}
+                                            {isPro && (
+                                                <span
+                                                    className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider shadow-sm"
+                                                    style={{ background: themes.gradients.primary }}
+                                                >
+                                                    Popular
+                                                </span>
+                                            )}
+                                            <div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-sm">{plan.name}</span>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                                        ${parseFloat(plan.price).toFixed(0)}/mo
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                    {plan.description}
+                                                </p>
+                                                {plan.features && plan.features.length > 0 && (
+                                                    <ul className="mt-3 space-y-1.5 border-t pt-2.5">
+                                                        {plan.features.map((feat: string, i: number) => (
+                                                            <li key={i} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                                                <Check className="w-3 h-3 text-primary shrink-0" style={{ color: themes.colors.primary.DEFAULT }} />
+                                                                <span className="truncate">{feat}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                            <div className="mt-4 pt-2 border-t flex items-center justify-between text-xs font-medium">
+                                                <span className={isSelected ? 'text-primary font-bold' : 'text-muted-foreground'} style={isSelected ? { color: themes.colors.primary.DEFAULT } : {}}>
+                                                    {isSelected ? 'Selected' : 'Select'}
+                                                </span>
+                                                <div
+                                                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${isSelected ? 'border-primary' : 'border-muted-foreground/40'
+                                                        }`}
+                                                    style={isSelected ? { borderColor: themes.colors.primary.DEFAULT, background: themes.colors.primary.DEFAULT } : {}}
+                                                >
+                                                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <InputError message={errors.plan_slug} />
+
+                            {/* Plan Flexibility & Recommendations Block */}
+                            <div className="mt-4 grid gap-3.5 rounded-xl border p-4 bg-card/60 backdrop-blur-xs transition-all hover:border-primary/30" style={{ borderColor: themes.colors.glass?.border || 'rgba(255,255,255,0.1)' }}>
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5" style={{ color: themes.colors.primary.DEFAULT }}>
+                                        <Sparkles className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: themes.colors.primary.DEFAULT }}>
+                                            Recommendations & Upgrading
+                                        </h4>
+                                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                                            For high-volume growth, we highly recommend upgrading to the <strong className="text-foreground">Pro Plan</strong> to unlock unlimited storage, priority platform support, and optimal transaction fees. You can seamlessly switch or upgrade plans anytime directly from your dashboard settings.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 border-t pt-3">
+                                    <div className="p-2 rounded-lg bg-destructive/10 text-destructive shrink-0 mt-0.5">
+                                        <ShieldCheck className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-destructive">
+                                            Hassle-Free Cancellation
+                                        </h4>
+                                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                                            Enjoy full transparency and absolute freedom. You can cancel your subscription at any moment. Your premium features will remain fully active until the end of your billing cycle, after which your store smoothly transitions to the Free tier without any loss of your essential store data.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="pt-4 flex justify-end">
-                            <Button type="submit" disabled={processing} className="w-full sm:w-auto gap-2">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="w-full sm:w-auto gap-2 transition-all hover:opacity-90 shadow-sm font-semibold"
+                                style={{ background: themes.gradients.primary, color: themes.colors.text.primary }}
+                            >
                                 <Store className="w-4 h-4" />
                                 {processing ? 'Creating...' : 'Create My Store'}
                             </Button>

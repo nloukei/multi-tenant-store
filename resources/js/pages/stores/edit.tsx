@@ -5,10 +5,12 @@ import { StoreManagementTabs } from '@/components/store-management-tabs';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, usePage, Link } from '@inertiajs/react';
+import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
-import { Store, CheckCircle2, AlertCircle, Save, ArrowLeft, Image as ImageIcon, Trash2, Plus, Palette, Globe, Type, Upload, X, Eye, EyeOff } from 'lucide-react';
+import { Store, CheckCircle2, AlertCircle, Save, ArrowLeft, Image as ImageIcon, Trash2, Plus, Palette, Globe, Type, Upload, X, Eye, EyeOff, Sparkles, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { themes } from '@/themes';
+
 
 export default function EditStore({ tenant }: { tenant: any }) {
     const { flash } = usePage<any>().props;
@@ -105,6 +107,44 @@ export default function EditStore({ tenant }: { tenant: any }) {
                 </Alert>
             )}
 
+            {/* ── Subscription Plan Card Overview ── */}
+            <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden relative" style={{ borderColor: themes.colors.glass?.border || 'rgba(255,255,255,0.1)' }}>
+                <div className="absolute top-0 left-0 bottom-0 w-1.5" style={{ background: themes.gradients.primary }} />
+                <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current Store Plan</span>
+                            {tenant.cancel_at_period_end && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3" /> Cancels Next Month
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1.5">
+                            <h2 className="text-2xl font-black text-foreground">
+                                {tenant.plan?.name || 'Free'} Plan
+                            </h2>
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10" style={{ color: themes.colors.primary.DEFAULT }}>
+                                ${parseFloat(tenant.plan?.price || '0').toFixed(0)} / mo
+                            </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {tenant.cancel_at_period_end
+                                ? 'Your subscription benefits remain active until the end of your billing cycle.'
+                                : 'Unlock more capabilities, unlimited storage, and priority support by upgrading tiers.'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <Link href={route('stores.plan', tenant.id)}>
+                            <Button type="button" className="gap-2 text-xs font-semibold h-9 shadow-sm" style={{ background: themes.gradients.primary, color: themes.colors.text.primary }}>
+                                <Sparkles className="w-3.5 h-3.5" />
+                                Upgrade / Change Plan
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
             <form className="flex flex-col gap-8" onSubmit={submitUpdate}>
 
                 {/* ── Section 1: Store Identity ── */}
@@ -171,13 +211,13 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                         onChange={(e) => setData('primary_color', e.target.value)}
                                     />
                                     <div className="flex items-center gap-2 flex-1">
-                                        <Input 
-                                            value={data.primary_color} 
+                                        <Input
+                                            value={data.primary_color}
                                             onChange={(e) => setData('primary_color', e.target.value)}
                                             className="font-mono uppercase text-sm"
                                             maxLength={7}
                                         />
-                                        <div 
+                                        <div
                                             className="h-10 w-10 rounded-lg border shadow-inner shrink-0"
                                             style={{ backgroundColor: data.primary_color }}
                                         />
@@ -207,7 +247,7 @@ export default function EditStore({ tenant }: { tenant: any }) {
                         {/* Currency */}
                         <div className="grid gap-2">
                             <Label htmlFor="currency">Store Currency</Label>
-                            <select 
+                            <select
                                 id="currency"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={data.currency}
@@ -301,19 +341,18 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                 {existingBanners.map((banner: any, index: number) => {
                                     const isMarkedForDeletion = data.delete_banners.includes(index);
                                     return (
-                                        <div 
-                                            key={index} 
-                                            className={`group relative overflow-hidden rounded-xl border-2 transition-all ${
-                                                isMarkedForDeletion 
-                                                    ? 'border-red-300 opacity-60 grayscale' 
+                                        <div
+                                            key={index}
+                                            className={`group relative overflow-hidden rounded-xl border-2 transition-all ${isMarkedForDeletion
+                                                    ? 'border-red-300 opacity-60 grayscale'
                                                     : 'border-neutral-200 hover:border-neutral-300'
-                                            } ${bannerView === 'grid' && totalBanners > 2 ? 'aspect-video' : 'aspect-[1800/558]'}`}
+                                                } ${bannerView === 'grid' && totalBanners > 2 ? 'aspect-video' : 'aspect-[1800/558]'}`}
                                         >
                                             <img src={banner.url} className="h-full w-full object-cover" alt={`Banner ${index + 1}`} />
-                                            
+
                                             {/* Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            
+
                                             {/* Banner Index Badge */}
                                             <div className="absolute top-3 left-3 bg-black/60 text-white px-2 py-1 text-[10px] font-bold rounded-md backdrop-blur-sm">
                                                 #{index + 1}
@@ -322,11 +361,10 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                             {/* Delete / Restore Button */}
                                             <button
                                                 type="button"
-                                                className={`absolute top-3 right-3 h-8 w-8 rounded-lg flex items-center justify-center transition-all shadow-sm ${
-                                                    isMarkedForDeletion 
-                                                        ? 'bg-white text-neutral-700 hover:bg-neutral-100' 
+                                                className={`absolute top-3 right-3 h-8 w-8 rounded-lg flex items-center justify-center transition-all shadow-sm ${isMarkedForDeletion
+                                                        ? 'bg-white text-neutral-700 hover:bg-neutral-100'
                                                         : 'bg-red-500 text-white hover:bg-red-600 opacity-0 group-hover:opacity-100'
-                                                }`}
+                                                    }`}
                                                 onClick={() => toggleDeleteExisting(index)}
                                                 title={isMarkedForDeletion ? 'Restore' : 'Delete'}
                                             >
@@ -347,17 +385,16 @@ export default function EditStore({ tenant }: { tenant: any }) {
 
                                 {/* New Upload Previews */}
                                 {previewUrls.map((url, index) => (
-                                    <div 
-                                        key={`new-${index}`} 
-                                        className={`group relative overflow-hidden rounded-xl border-2 border-green-300 bg-green-50 ${
-                                            bannerView === 'grid' && totalBanners > 2 ? 'aspect-video' : 'aspect-[1800/558]'
-                                        }`}
+                                    <div
+                                        key={`new-${index}`}
+                                        className={`group relative overflow-hidden rounded-xl border-2 border-green-300 bg-green-50 ${bannerView === 'grid' && totalBanners > 2 ? 'aspect-video' : 'aspect-[1800/558]'
+                                            }`}
                                     >
                                         <img src={url} className="h-full w-full object-cover" alt="New Preview" />
-                                        
+
                                         {/* Overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        
+
                                         {/* New Badge */}
                                         <div className="absolute top-3 left-3 bg-green-500 text-white px-2.5 py-1 text-[10px] font-bold rounded-md">
                                             NEW
@@ -375,7 +412,7 @@ export default function EditStore({ tenant }: { tenant: any }) {
                                 ))}
                             </div>
                         ) : (
-                            <div 
+                            <div
                                 className="flex flex-col items-center justify-center py-16 border-2 border-dashed rounded-xl bg-neutral-50/50 hover:bg-neutral-50 cursor-pointer transition-colors"
                                 onClick={() => document.getElementById('banner_images')?.click()}
                             >

@@ -16,6 +16,8 @@ import { Toaster } from '@/components/ui/toast';
 
 import { router } from '@inertiajs/react';
 
+import { themes } from './themes';
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
@@ -30,7 +32,7 @@ createInertiaApp({
         );
     },
     progress: {
-        color: '#171717',
+        color: themes.colors.primary.DEFAULT,
         showSpinner: true,
     },
 });

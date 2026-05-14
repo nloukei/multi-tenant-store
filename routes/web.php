@@ -52,9 +52,9 @@ Route::middleware(['web', 'auth'])->group(function () {
         $tenants = [];
 
         if ($user->isSuperAdmin()) {
-            $tenants = Tenant::with(['domains', 'owner'])->get();
+            $tenants = Tenant::with(['domains', 'owner', 'plan'])->get();
         } else if ($user->isAdmin()) {
-            $tenants = $user->tenants()->with('domains')->get();
+            $tenants = $user->tenants()->with(['domains', 'plan'])->get();
         }
 
         return Inertia::render('dashboard', [
@@ -81,4 +81,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/stores/{tenant}/orders', [StoreController::class, 'orders'])->name('stores.orders');
     Route::patch('/stores/{tenant}/orders/{order}/status', [StoreController::class, 'updateOrderStatus'])->name('stores.orders.status');
     Route::patch('/stores/{tenant}', [StoreController::class, 'update'])->name('stores.update');
+    
+    // Subscription & Plan management
+    Route::get('/stores/{tenant}/plan', [StoreController::class, 'editPlan'])->name('stores.plan');
+    Route::patch('/stores/{tenant}/plan', [StoreController::class, 'updatePlan'])->name('stores.plan.update');
+    Route::post('/stores/{tenant}/cancel', [StoreController::class, 'cancelPlan'])->name('stores.plan.cancel');
 });

@@ -11,7 +11,17 @@ class Plan extends Model
         'name',
         'slug',
         'description',
+        'price',
+        'features',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'features' => 'array',
+        ];
+    }
 
     public function tenants(): HasMany
     {

@@ -5,8 +5,7 @@ export type Appearance = 'light' | 'dark' | 'system';
 const prefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 const applyTheme = (appearance: Appearance) => {
-    // Force light mode for now as requested
-    const isDark = false; 
+    const isDark = appearance === 'dark' || (appearance === 'system' && prefersDark());
 
     document.documentElement.classList.toggle('dark', isDark);
 };
@@ -18,7 +17,8 @@ const handleSystemThemeChange = () => {
 };
 
 export function initializeTheme() {
-    applyTheme('light');
+    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+    applyTheme(savedAppearance);
 
     // Add the event listener for system theme changes...
     mediaQuery.addEventListener('change', handleSystemThemeChange);
@@ -28,13 +28,15 @@ export function useAppearance() {
     const [appearance, setAppearance] = useState<Appearance>('light');
 
     const updateAppearance = (mode: Appearance) => {
-        setAppearance('light');
-        localStorage.setItem('appearance', 'light');
-        applyTheme('light');
+        setAppearance(mode);
+        localStorage.setItem('appearance', mode);
+        applyTheme(mode);
     };
 
     useEffect(() => {
-        updateAppearance('light');
+        const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+        setAppearance(savedAppearance);
+        applyTheme(savedAppearance);
 
         return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
     }, []);

@@ -1,7 +1,7 @@
 import { ProductCard } from '@/components/tenant/product-card';
 import { TopBar } from '@/components/tenant/top-bar';
 import { Head, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface Product {

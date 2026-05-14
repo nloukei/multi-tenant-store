@@ -85,7 +85,7 @@ Route::middleware([
     })->name('tenant.cart');
 
     Route::get('/products/{slug}', function (string $slug) {
-        $product = Product::with('category')->where('slug', $slug)->firstOrFail();
+        $product = Product::with(['category', 'reviews'])->where('slug', $slug)->firstOrFail();
 
         // Get related products from the same category (excluding current)
         $relatedProducts = $product->category_id
@@ -94,6 +94,15 @@ Route::middleware([
                 ->limit(4)
                 ->get()
             : collect();
+
+        // Also fetch any reviews that matched by product_name if product_id was null
+        $reviews = \App\Models\Review::where('product_id', $product->id)
+            ->orWhere('product_name', $product->name)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Attach resolved reviews to product object
+        $product->setRelation('reviews', $reviews);
 
         return Inertia::render('tenant/product-detail', [
             'product' => $product,
@@ -155,6 +164,8 @@ Route::middleware([
         // Customer Order History
         Route::get('/orders', [\App\Http\Controllers\Tenant\OrderController::class, 'index'])
             ->name('tenant.orders.index');
+        Route::post('/orders/{order}/reviews', [\App\Http\Controllers\Tenant\OrderController::class, 'storeReview'])
+            ->name('tenant.orders.reviews.store');
 
         // Customer Saved Locations
         Route::post('/locations', [\App\Http\Controllers\Tenant\CustomerLocationController::class, 'store'])

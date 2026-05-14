@@ -1,13 +1,25 @@
 import { Head, router } from '@inertiajs/react';
-import { Package, Truck, CheckCircle2, Clock, XCircle, ChevronDown, MapPin } from 'lucide-react';
+import { Package, ChevronDown, MapPin, Star } from 'lucide-react';
 import { StoreManagementTabs } from '@/components/store-management-tabs';
 import { toast } from 'sonner';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+import { useMemo } from 'react';
 
 interface OrderItem {
     id: number;
     product_name: string;
     quantity: number;
     unit_price: number;
+}
+
+interface Review {
+    id: number;
+    product_name: string;
+    customer_name?: string | null;
+    rating: number;
+    comment?: string | null;
+    created_at: string;
 }
 
 interface Order {
@@ -18,6 +30,7 @@ interface Order {
     currency: string;
     created_at: string;
     items: OrderItem[];
+    reviews?: Review[];
     customer?: {
         name: string;
         email: string;
@@ -31,6 +44,12 @@ interface Props {
 }
 
 export default function StoreOrders({ tenant, orders }: Props) {
+    const breadcrumbs: BreadcrumbItem[] = useMemo(() => [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Manage Store', href: route('stores.edit', tenant.id) },
+        { title: 'Orders', href: '#' },
+    ], [tenant.id]);
+
     const formatPrice = (amount: number, currency: string) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -70,31 +89,33 @@ export default function StoreOrders({ tenant, orders }: Props) {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-50 text-neutral-900 pb-12">
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Manage Orders - ${tenant.store_name}`} />
             
-            <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-24">
-                <div className="flex items-center justify-between mb-8">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
+                <div className="flex items-center justify-between border-b pb-4">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight">{tenant.store_name}</h1>
-                        <p className="text-neutral-500 mt-1">Manage orders and fulfillments</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Store Management</h1>
+                        <p className="text-muted-foreground mt-1">
+                            {tenant.store_name} ({tenant.id})
+                        </p>
                     </div>
                 </div>
 
                 <StoreManagementTabs tenantId={tenant.id} activeTab="orders" />
 
-                <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden mt-6">
-                    <div className="p-6 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
+                <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                    <div className="p-6 border-b flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/30">
                         <div>
                             <h2 className="text-lg font-bold">Order Management</h2>
-                            <p className="text-sm text-neutral-500">View and update customer orders.</p>
+                            <p className="text-sm text-muted-foreground">View and update customer orders.</p>
                         </div>
                     </div>
 
                     {orders.length > 0 ? (
-                        <div className="divide-y divide-neutral-100">
+                        <div className="divide-y divide-border">
                             {orders.map((order) => (
-                                <div key={order.id} className="p-6 hover:bg-neutral-50/50 transition-colors">
+                                <div key={order.id} className="p-6">
                                     <div className="flex flex-col lg:flex-row justify-between gap-6">
                                         {/* Order Details */}
                                         <div className="flex-1 space-y-4">
@@ -104,17 +125,17 @@ export default function StoreOrders({ tenant, orders }: Props) {
                                                     <p className="text-sm text-neutral-500">{formatDate(order.created_at)}</p>
                                                     <div className="mt-2 flex flex-wrap gap-2 items-center">
                                                         {order.customer ? (
-                                                            <div className="text-sm bg-neutral-100 inline-flex items-center px-3 py-1.5 rounded-lg border border-neutral-200">
+                                                            <div className="text-sm bg-muted inline-flex items-center px-3 py-1.5 rounded-lg border border-border">
                                                                 <span className="font-bold mr-1">{order.customer.name}</span> &middot; <span className="ml-1">{order.customer.email}</span>
                                                             </div>
                                                         ) : (
-                                                            <div className="text-sm bg-neutral-100 inline-flex items-center px-3 py-1.5 rounded-lg border border-neutral-200">
+                                                            <div className="text-sm bg-muted inline-flex items-center px-3 py-1.5 rounded-lg border border-border">
                                                                 <span className="font-bold italic text-neutral-500">Guest Checkout</span>
                                                             </div>
                                                         )}
                                                         {order.customer_location && (
-                                                            <div className="text-sm bg-blue-50 text-blue-800 inline-flex items-center px-3 py-1.5 rounded-lg border border-blue-100 font-medium">
-                                                                <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0 text-blue-600" />
+                                                            <div className="text-sm bg-blue-500/10 text-blue-600 inline-flex items-center px-3 py-1.5 rounded-lg border border-blue-500/20 font-medium">
+                                                                <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0" />
                                                                 <span>{order.customer_location}</span>
                                                             </div>
                                                         )}
@@ -126,24 +147,47 @@ export default function StoreOrders({ tenant, orders }: Props) {
                                                 </div>
                                             </div>
 
-                                            <div className="bg-white border border-neutral-200 rounded-lg p-4">
+                                            <div className="bg-muted/30 border border-border rounded-lg p-4">
                                                 <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3 border-b pb-2">Purchased Items</p>
-                                                <div className="space-y-2">
-                                                    {order.items.map((item) => (
-                                                        <div key={item.id} className="flex justify-between items-center text-sm">
-                                                            <span className="font-medium text-neutral-700 flex items-center">
-                                                                <span className="bg-neutral-100 text-neutral-600 font-bold px-2 py-0.5 rounded text-xs mr-3">{item.quantity}x</span>
-                                                                {item.product_name}
-                                                            </span>
-                                                            <span className="text-neutral-500 font-medium">{formatPrice(item.unit_price * item.quantity, order.currency)}</span>
-                                                        </div>
-                                                    ))}
+                                                <div className="space-y-3">
+                                                    {order.items.map((item) => {
+                                                        const review = order.reviews?.find(r => r.product_name === item.product_name);
+                                                        return (
+                                                            <div key={item.id} className="space-y-2 pb-3 border-b border-border/40 last:border-0 last:pb-0">
+                                                                <div className="flex justify-between items-center text-sm">
+                                                                    <span className="font-medium text-foreground flex items-center">
+                                                                        <span className="bg-muted text-muted-foreground font-bold px-2 py-0.5 rounded text-xs mr-3 shrink-0">{item.quantity}x</span>
+                                                                        <span className="line-clamp-1">{item.product_name}</span>
+                                                                    </span>
+                                                                    <span className="text-neutral-500 font-medium shrink-0 ml-2">{formatPrice(item.unit_price * item.quantity, order.currency)}</span>
+                                                                </div>
+                                                                {review && (
+                                                                    <div className="ml-8 bg-background/90 p-3 rounded-xl border border-border shadow-xs flex flex-col gap-1">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <div className="flex gap-0.5">
+                                                                                {[...Array(5)].map((_, i) => (
+                                                                                    <Star 
+                                                                                        key={i} 
+                                                                                        className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-amber-500 text-amber-500' : 'text-neutral-200'}`} 
+                                                                                    />
+                                                                                ))}
+                                                                            </div>
+                                                                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider bg-muted px-2 py-0.5 rounded">Customer Rating</span>
+                                                                        </div>
+                                                                        {review.comment && (
+                                                                            <p className="text-xs text-foreground italic mt-1 line-clamp-3">"{review.comment}"</p>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Order Actions */}
-                                        <div className="lg:w-72 shrink-0 flex flex-col justify-center bg-white border border-neutral-200 p-5 rounded-xl shadow-sm">
+                                        <div className="lg:w-72 shrink-0 flex flex-col justify-center bg-muted/20 border border-border p-5 rounded-xl shadow-sm">
                                             <label className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 block text-center">Current Status</label>
                                             <div className="relative w-full">
                                                 <select
@@ -166,8 +210,8 @@ export default function StoreOrders({ tenant, orders }: Props) {
                             ))}
                         </div>
                     ) : (
-                        <div className="p-16 text-center border-t border-neutral-100 bg-neutral-50/30">
-                            <div className="h-20 w-20 bg-white shadow-sm border border-neutral-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="p-16 text-center border-t border-border bg-muted/10">
+                            <div className="h-20 w-20 bg-muted border border-border rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Package className="h-10 w-10 text-neutral-300" />
                             </div>
                             <h3 className="font-bold text-xl text-neutral-700 mb-2">No orders found</h3>
@@ -175,7 +219,7 @@ export default function StoreOrders({ tenant, orders }: Props) {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+            </div>
+        </AppLayout>
     );
 }

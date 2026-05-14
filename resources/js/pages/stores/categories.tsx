@@ -203,9 +203,9 @@ export default function StoreCategories({ tenant, categories }: { tenant: any, c
             <StoreManagementTabs tenantId={tenant.id} activeTab="categories" />
 
 
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-neutral-50 text-muted-foreground border-b">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-6 py-4 font-semibold uppercase tracking-wider">Category Hierarchy</th>
                             <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Actions</th>
@@ -228,7 +228,7 @@ export default function StoreCategories({ tenant, categories }: { tenant: any, c
                             <tr>
                                 <td colSpan={2} className="px-6 py-12 text-center">
                                     <div className="flex flex-col items-center gap-2">
-                                        <Layers className="h-10 w-10 text-neutral-200" />
+                                        <Layers className="h-10 w-10 text-muted" />
                                         <p className="text-muted-foreground">No categories found for this store.</p>
                                     </div>
                                 </td>
@@ -275,8 +275,8 @@ function CategoryRow({ category, level, expandedIds, onToggle, onEdit, onDelete 
     return (
         <>
             <tr className={cn(
-                "hover:bg-neutral-50 transition-colors group",
-                level > 0 && "bg-neutral-50/30"
+                "hover:bg-muted/50 transition-colors group",
+                level > 0 && "bg-muted/10"
             )}>
                 <td className="px-6 py-4">
                     <div className="flex items-center gap-3" style={{ paddingLeft: `${level * 24}px` }}>
@@ -284,7 +284,7 @@ function CategoryRow({ category, level, expandedIds, onToggle, onEdit, onDelete 
                             {hasChildren ? (
                                 <button 
                                     onClick={() => onToggle(category.id)}
-                                    className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                                    className="p-1 hover:bg-muted rounded transition-colors"
                                 >
                                     {isExpanded ? (
                                         <ChevronDown className="h-4 w-4 text-neutral-500" />
@@ -297,7 +297,7 @@ function CategoryRow({ category, level, expandedIds, onToggle, onEdit, onDelete 
                             ) : null}
                         </div>
                         
-                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center shrink-0 border shadow-sm">
+                        <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0 border shadow-sm">
                             <Layers className={cn(
                                 "h-4 w-4",
                                 level === 0 ? "text-blue-500" : "text-neutral-400"
@@ -306,7 +306,7 @@ function CategoryRow({ category, level, expandedIds, onToggle, onEdit, onDelete 
                         <div>
                             <span className={cn(
                                 "block transition-all",
-                                level === 0 ? "font-bold text-neutral-900" : "font-medium text-neutral-700"
+                                level === 0 ? "font-bold text-foreground" : "font-medium text-neutral-700"
                             )}>
                                 {category.name}
                             </span>

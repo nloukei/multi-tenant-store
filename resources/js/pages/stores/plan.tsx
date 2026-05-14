@@ -4,20 +4,24 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
-import { Store, CheckCircle2, AlertCircle, Check, Sparkles, ShieldCheck, ArrowLeft, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Store, CheckCircle2, AlertCircle, Check, Sparkles, ShieldCheck, ArrowLeft, RefreshCw, AlertTriangle, CreditCard } from 'lucide-react';
 import { themes } from '@/themes';
 import { useState } from 'react';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function StorePlan({ tenant, plans = [] }: { tenant: any; plans: any[] }) {
     const { flash } = usePage<any>().props;
     const currentPlan = tenant.plan || { name: 'Free', slug: 'free', price: '0.00', description: 'Basic tier' };
     const isCancelled = tenant.cancel_at_period_end === true;
 
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, patch, errors } = useForm({
         plan_slug: currentPlan.slug,
     });
 
+    const [processingSlug, setProcessingSlug] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
+    const [resuming, setResuming] = useState(false);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -26,29 +30,50 @@ export default function StorePlan({ tenant, plans = [] }: { tenant: any; plans: 
     ];
 
     const handleUpgrade = (slug: string) => {
-        setData('plan_slug', slug);
-        patch(route('stores.plan.update', tenant.id), {
+        setProcessingSlug(slug);
+        router.patch(route('stores.plan.update', tenant.id), { plan_slug: slug }, {
             preserveScroll: true,
-            onSuccess: () => {
-                // Success handled via Inertia flash
-            }
+            onFinish: () => setProcessingSlug(null),
         });
     };
 
     const handleCancelPlan = () => {
-        if (confirm('Are you sure you want to schedule your subscription for cancellation? Benefits will remain active until next month.')) {
-            setCancelling(true);
-            router.post(route('stores.plan.cancel', tenant.id), {}, {
-                preserveScroll: true,
-                onFinish: () => setCancelling(false),
-            });
-        }
+        setIsCancelModalOpen(true);
+    };
+
+    const executeCancelPlan = () => {
+        setCancelling(true);
+        router.post(route('stores.plan.cancel', tenant.id), {}, {
+            preserveScroll: true,
+            onFinish: () => {
+                setCancelling(false);
+                setIsCancelModalOpen(false);
+            },
+        });
+    };
+
+    const handleResumePlan = () => {
+        setResuming(true);
+        router.post(route('stores.plan.resume', tenant.id), {}, {
+            preserveScroll: true,
+            onFinish: () => setResuming(false),
+        });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Subscription Plan - ${tenant.store_name}`} />
             <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
+                <ConfirmModal 
+                    isOpen={isCancelModalOpen}
+                    onClose={() => setIsCancelModalOpen(false)}
+                    onConfirm={executeCancelPlan}
+                    title="Cancel Subscription"
+                    description="Are you sure you want to schedule your subscription for cancellation? Benefits will remain active until next month."
+                    confirmText="Schedule Cancellation"
+                    variant="destructive"
+                    loading={cancelling}
+                />
                 
                 {/* Header */}
                 <div className="flex items-center justify-between border-b pb-4">
@@ -86,12 +111,27 @@ export default function StorePlan({ tenant, plans = [] }: { tenant: any; plans: 
 
                 {/* Pending Cancellation Notice */}
                 {isCancelled && (
-                    <Alert className="border-amber-500/50 text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400">
-                        <AlertTriangle className="h-4 w-4 !text-amber-600 dark:!text-amber-400" />
-                        <AlertTitle className="font-bold">Cancellation Scheduled</AlertTitle>
-                        <AlertDescription className="mt-1 text-xs leading-relaxed">
-                            Your subscription has been scheduled for cancellation. Your premium capabilities will remain fully accessible until the start of next month (end of your current billing cycle), after which your store smoothly transitions back to the Free tier without any loss of critical store data.
-                        </AlertDescription>
+                    <Alert className="border-amber-500/50 text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 !text-amber-600 dark:!text-amber-400" />
+                                <AlertTitle className="font-bold mb-0">Cancellation Scheduled</AlertTitle>
+                            </div>
+                            <AlertDescription className="mt-2 text-xs leading-relaxed">
+                                Your subscription has been scheduled for cancellation. Your premium capabilities will remain fully accessible until the start of next month (end of your current billing cycle), after which your store smoothly transitions back to the Free tier without any loss of critical store data.
+                            </AlertDescription>
+                        </div>
+                        <div className="shrink-0">
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                disabled={resuming}
+                                onClick={handleResumePlan}
+                                className="border-amber-600/30 text-amber-700 hover:bg-amber-600/10 dark:text-amber-400 dark:border-amber-400/30 dark:hover:bg-amber-400/10 text-xs font-bold"
+                            >
+                                {resuming ? 'Resuming...' : 'Resume Subscription'}
+                            </Button>
+                        </div>
                     </Alert>
                 )}
 
@@ -143,7 +183,8 @@ export default function StorePlan({ tenant, plans = [] }: { tenant: any; plans: 
                         {plans.map((plan: any) => {
                             const isCurrent = currentPlan.slug === plan.slug;
                             const isPro = plan.slug === 'pro';
-                            const isUpdating = processing && data.plan_slug === plan.slug;
+                            const isUpdating = processingSlug === plan.slug;
+                            const isPaid = parseFloat(plan.price) > 0;
 
                             return (
                                 <div
@@ -209,12 +250,15 @@ export default function StorePlan({ tenant, plans = [] }: { tenant: any; plans: 
                                         ) : (
                                             <Button
                                                 type="button"
-                                                disabled={processing}
+                                                disabled={processingSlug !== null}
                                                 onClick={() => handleUpgrade(plan.slug)}
-                                                className="w-full text-xs font-bold h-9 transition-all hover:opacity-90 shadow-sm"
+                                                className="w-full text-xs font-bold h-9 transition-all hover:opacity-90 shadow-sm flex items-center justify-center gap-1.5"
                                                 style={{ background: themes.gradients.primary, color: themes.colors.text.primary }}
                                             >
-                                                {isUpdating ? 'Upgrading...' : `Switch to ${plan.name}`}
+                                                {isPaid && <CreditCard className="w-3.5 h-3.5 shrink-0" />}
+                                                {isUpdating 
+                                                    ? (isPaid ? 'Redirecting to Stripe...' : 'Switching...') 
+                                                    : (isPaid ? `Upgrade with Stripe` : `Switch to ${plan.name}`)}
                                             </Button>
                                         )}
                                     </div>

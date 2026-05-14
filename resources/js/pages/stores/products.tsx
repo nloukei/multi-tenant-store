@@ -230,16 +230,16 @@ export default function StoreProducts({ tenant, products, categories }: { tenant
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Search products..."
-                    className="pl-10 h-11 rounded-xl bg-neutral-50"
+                    className="pl-10 h-11 rounded-xl bg-muted"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
 
             {/* Product List */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-neutral-50 text-muted-foreground border-b">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-6 py-4 font-semibold uppercase tracking-wider">Product</th>
                             <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Price</th>
@@ -250,10 +250,10 @@ export default function StoreProducts({ tenant, products, categories }: { tenant
                     <tbody className="divide-y">
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map((product) => (
-                                <tr key={product.id} className="hover:bg-neutral-50 transition-colors group">
+                                <tr key={product.id} className="hover:bg-muted/50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0 overflow-hidden border">
+                                            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border">
                                                 {product.image_url ? (
                                                     <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
                                                 ) : (
@@ -261,7 +261,7 @@ export default function StoreProducts({ tenant, products, categories }: { tenant
                                                 )}
                                             </div>
                                             <div>
-                                                <span className="font-bold text-neutral-900 block">{product.name}</span>
+                                                <span className="font-bold text-foreground block">{product.name}</span>
                                                 <span className="text-xs text-muted-foreground flex gap-2">
                                                     <span>SKU: {product.sku || 'N/A'}</span>
                                                     {product.category && (
@@ -311,7 +311,7 @@ export default function StoreProducts({ tenant, products, categories }: { tenant
                             <tr>
                                 <td colSpan={4} className="px-6 py-12 text-center">
                                     <div className="flex flex-col items-center gap-2">
-                                        <Package className="h-10 w-10 text-neutral-200" />
+                                        <Package className="h-10 w-10 text-muted" />
                                         <p className="text-muted-foreground">No products found for this store.</p>
                                     </div>
                                 </td>

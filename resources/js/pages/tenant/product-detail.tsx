@@ -2,10 +2,18 @@ import { TopBar } from '@/components/tenant/top-bar';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { Button } from '@/components/ui/button';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Package, ArrowLeft, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw, Tag } from 'lucide-react';
+import { Package, ArrowLeft, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw, Tag, Star } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { toast } from '@/components/ui/toast';
 import { useState } from 'react';
+
+interface Review {
+    id: number;
+    customer_name?: string | null;
+    rating: number;
+    comment?: string | null;
+    created_at: string;
+}
 
 interface Product {
     id: number;
@@ -23,6 +31,7 @@ interface Product {
         name: string;
         slug: string;
     } | null;
+    reviews?: Review[];
 }
 
 interface Props {
@@ -36,6 +45,11 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
     const accent = tenant.primary_color;
     const currency = tenant.currency || 'USD';
     const [quantity, setQuantity] = useState(1);
+
+    const reviews = product.reviews || [];
+    const averageRating = reviews.length > 0 
+        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+        : null;
 
     const formatPrice = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -132,9 +146,27 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                             </span>
                         )}
 
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-4">
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-2">
                             {product.name}
                         </h1>
+
+                        {/* Reviews Summary Rating */}
+                        {averageRating ? (
+                            <a href="#reviews" className="flex items-center gap-2 mb-4 w-fit group">
+                                <div className="flex gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star 
+                                            key={i} 
+                                            className={`w-4 h-4 ${i < Math.round(Number(averageRating)) ? 'fill-amber-500 text-amber-500' : 'text-neutral-200'}`} 
+                                        />
+                                    ))}
+                                </div>
+                                <span className="text-sm font-bold text-neutral-900 group-hover:underline">{averageRating}</span>
+                                <span className="text-xs text-neutral-400 font-medium">({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
+                            </a>
+                        ) : (
+                            <span className="text-xs text-neutral-400 italic mb-4 block">No reviews yet</span>
+                        )}
 
                         {/* Price */}
                         <div className="flex items-baseline gap-3 mb-6">
@@ -222,6 +254,77 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                         </div>
                     </div>
                 </div>
+
+                {/* Customer Reviews Section */}
+                <section id="reviews" className="mt-20 pt-12 border-t border-neutral-200 scroll-mt-24">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+                        <div>
+                            <h2 className="text-2xl font-black tracking-tight mb-1">Customer Reviews</h2>
+                            <p className="text-xs text-neutral-500 font-medium">Real feedback from verified purchasers</p>
+                        </div>
+                        {averageRating && (
+                            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-neutral-200 shadow-xs">
+                                <span className="text-2xl font-black text-neutral-900">{averageRating}</span>
+                                <div>
+                                    <div className="flex gap-0.5">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star 
+                                                key={i} 
+                                                className={`w-3.5 h-3.5 ${i < Math.round(Number(averageRating)) ? 'fill-amber-500 text-amber-500' : 'text-neutral-200'}`} 
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mt-0.5">Based on {reviews.length} {reviews.length === 1 ? 'rating' : 'ratings'}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {reviews.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {reviews.map((rev) => (
+                                <div key={rev.id} className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center font-bold text-xs text-neutral-600 border border-neutral-200 shrink-0">
+                                                    {(rev.customer_name || 'V')[0].toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm font-bold text-neutral-900 block leading-none">{rev.customer_name || 'Verified Purchaser'}</span>
+                                                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Verified Purchase</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-neutral-400 font-medium">
+                                                {new Date(rev.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex gap-1 mb-3">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star 
+                                                    key={i} 
+                                                    className={`w-3.5 h-3.5 ${i < rev.rating ? 'fill-amber-500 text-amber-500' : 'text-neutral-200'}`} 
+                                                />
+                                            ))}
+                                        </div>
+
+                                        {rev.comment ? (
+                                            <p className="text-sm text-neutral-700 leading-relaxed italic">"{rev.comment}"</p>
+                                        ) : (
+                                            <p className="text-xs text-neutral-400 italic">No text comment provided.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-center shadow-xs">
+                            <span className="text-sm font-bold text-neutral-400 block mb-1">No feedback published yet</span>
+                            <p className="text-xs text-neutral-400 max-w-xs mx-auto">Orders delivered successfully will allow customers to write verified product reviews from their account.</p>
+                        </div>
+                    )}
+                </section>
 
                 {/* Related Products */}
                 {relatedProducts.length > 0 && (

@@ -50,7 +50,11 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
 
                 {/* Search Bar */}
                 <div className="hidden max-w-md flex-1 md:block">
-                    <SearchInput placeholder="Search products..." />
+                    <SearchInput 
+                        placeholder="Search products..." 
+                        className="focus:ring-2 focus:ring-offset-2 transition-all"
+                        style={{ '--tw-ring-color': accent } as any}
+                    />
                 </div>
 
                 {/* Right Side: Auth & Cart */}
@@ -146,17 +150,21 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                 <div className="mx-auto flex max-w-7xl items-center gap-6 px-8 py-2 overflow-x-auto no-scrollbar">
                     <Link
                         href={route('tenant.home')}
-                        className="text-sm font-semibold text-neutral-900 hover:text-primary transition-colors whitespace-nowrap"
+                        className="text-sm font-semibold text-neutral-900 hover:opacity-80 transition-all whitespace-nowrap relative group"
+                        style={{ color: route().current('tenant.home') ? accent : undefined }}
                     >
                         Home
+                        {route().current('tenant.home') && (
+                            <span className="absolute -bottom-[9px] left-0 right-0 h-0.5 rounded-full" style={{ backgroundColor: accent }} />
+                        )}
                     </Link>
 
                     {categories.map((category) => (
                         category.children && category.children.length > 0 ? (
                             <DropdownMenu key={category.id}>
-                                <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors whitespace-nowrap focus:outline-none">
-                                    {category.name}
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
+                                <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-neutral-600 hover:opacity-80 transition-all whitespace-nowrap focus:outline-none group">
+                                    <span className="group-hover:text-neutral-900">{category.name}</span>
+                                    <ChevronDown className="h-3 w-3 opacity-50 transition-transform group-data-[state=open]:rotate-180" />
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="start" className="w-48">
                                     {category.children.map(child => (
@@ -172,9 +180,13 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                             <Link
                                 key={category.id}
                                 href={route('tenant.category.show', category.slug)}
-                                className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors whitespace-nowrap"
+                                className="text-sm font-medium text-neutral-600 hover:opacity-80 transition-all whitespace-nowrap relative group"
+                                style={{ color: route().current('tenant.category.show', category.slug) ? accent : undefined }}
                             >
                                 {category.name}
+                                {route().current('tenant.category.show', category.slug) && (
+                                    <span className="absolute -bottom-[9px] left-0 right-0 h-0.5 rounded-full" style={{ backgroundColor: accent }} />
+                                )}
                             </Link>
                         )
                     ))}

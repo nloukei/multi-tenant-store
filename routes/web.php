@@ -85,5 +85,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Subscription & Plan management
     Route::get('/stores/{tenant}/plan', [StoreController::class, 'editPlan'])->name('stores.plan');
     Route::patch('/stores/{tenant}/plan', [StoreController::class, 'updatePlan'])->name('stores.plan.update');
+    Route::get('/stores/{tenant}/plan/checkout-success', [StoreController::class, 'planCheckoutSuccess'])->name('stores.plan.checkout.success');
+    Route::get('/stores/{tenant}/plan/checkout-cancel', [StoreController::class, 'planCheckoutCancel'])->name('stores.plan.checkout.cancel');
     Route::post('/stores/{tenant}/cancel', [StoreController::class, 'cancelPlan'])->name('stores.plan.cancel');
+    Route::post('/stores/{tenant}/resume', [StoreController::class, 'resumePlan'])->name('stores.plan.resume');
 });

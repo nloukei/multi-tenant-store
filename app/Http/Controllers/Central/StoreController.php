@@ -503,7 +503,7 @@ class StoreController extends Controller
         $tenant = Tenant::findOrFail($id);
 
         $tenant->run(function () use (&$orders) {
-            $orders = \App\Models\Order::with(['items', 'customer'])
+            $orders = \App\Models\Order::with(['items', 'customer', 'reviews'])
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->toArray();
@@ -572,13 +572,111 @@ class StoreController extends Controller
 
         $selectedPlan = Plan::query()->where('slug', $validated['plan_slug'])->firstOrFail();
 
-        // Update plan and reset any pending cancellation status
-        $tenant->update([
-            'plan_id' => $selectedPlan->id,
-            'cancel_at_period_end' => false,
-        ]);
+        // If plan is free or price is 0, update directly without Stripe Payment
+        if ($selectedPlan->price <= 0) {
+            $tenant->update([
+                'plan_id' => $selectedPlan->id,
+                'cancel_at_period_end' => false,
+            ]);
 
-        return redirect()->route('stores.edit', $tenant->id)->with('message', "Successfully upgraded to the {$selectedPlan->name} Plan!");
+            return redirect()->route('stores.edit', $tenant->id)->with('message', "Successfully switched to the {$selectedPlan->name} Plan!");
+        }
+
+        // For paid plans, redirect to Stripe Payment first
+        $stripeSecret = config('services.stripe.secret');
+
+        if (!$stripeSecret) {
+            return redirect()->back()->with('error', 'Stripe is not configured. Please add STRIPE_SECRET to your .env file to process payments.');
+        }
+
+        $stripe = new \Stripe\StripeClient($stripeSecret);
+
+        try {
+            $session = $stripe->checkout->sessions->create([
+                'payment_method_types' => ['card'],
+                'line_items' => [
+                    [
+                        'price_data' => [
+                            'currency' => strtolower($tenant->currency ?? 'usd'),
+                            'product_data' => [
+                                'name' => "{$selectedPlan->name} Plan Subscription - {$tenant->store_name}",
+                                'description' => $selectedPlan->description,
+                            ],
+                            'unit_amount' => (int) round($selectedPlan->price * 100),
+                        ],
+                        'quantity' => 1,
+                    ],
+                ],
+                'mode' => 'payment',
+                'success_url' => route('stores.plan.checkout.success', ['tenant' => $tenant->id], true) . '?session_id={CHECKOUT_SESSION_ID}&plan_slug=' . $selectedPlan->slug,
+                'cancel_url' => route('stores.plan.checkout.cancel', ['tenant' => $tenant->id], true),
+                'metadata' => [
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $selectedPlan->id,
+                    'plan_slug' => $selectedPlan->slug,
+                ],
+            ]);
+
+            return Inertia::location($session->url);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Stripe session creation failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Payment gateway error: ' . $e->getMessage());
+        }
+    }
+
+    // Handle successful redirection back from Stripe checkout
+    public function planCheckoutSuccess(Request $request, string $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        // Authorization check
+        $user = $request->user();
+        if (!$user->isSuperAdmin() && $tenant->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $planSlug = $request->query('plan_slug');
+        $sessionId = $request->query('session_id');
+
+        if ($sessionId && config('services.stripe.secret')) {
+            try {
+                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $sessionData = $stripe->checkout->sessions->retrieve($sessionId);
+                if (!empty($sessionData->metadata->plan_slug)) {
+                    $planSlug = $sessionData->metadata->plan_slug;
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Stripe session retrieve error: ' . $e->getMessage());
+            }
+        }
+
+        if ($planSlug) {
+            $selectedPlan = Plan::query()->where('slug', $planSlug)->first();
+            if ($selectedPlan) {
+                $tenant->update([
+                    'plan_id' => $selectedPlan->id,
+                    'cancel_at_period_end' => false,
+                ]);
+
+                return redirect()->route('stores.edit', $tenant->id)->with('message', "Payment successful! Successfully upgraded to the {$selectedPlan->name} Plan.");
+            }
+        }
+
+        return redirect()->route('stores.plan', $tenant->id)->with('message', "Plan updated successfully.");
+    }
+
+    // Handle cancelled redirection back from Stripe checkout
+    public function planCheckoutCancel(Request $request, string $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        // Authorization check
+        $user = $request->user();
+        if (!$user->isSuperAdmin() && $tenant->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('stores.plan', $tenant->id)->with('error', 'Payment cancelled. Your subscription plan remains unchanged.');
     }
 
     // Schedule subscription cancellation for next month
@@ -598,5 +696,24 @@ class StoreController extends Controller
         ]);
 
         return redirect()->back()->with('message', 'Subscription scheduled for cancellation. Your current plan benefits will remain fully active until next month.');
+    }
+
+    // Resume subscription cancellation
+    public function resumePlan(Request $request, string $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        // Authorization check
+        $user = $request->user();
+        if (!$user->isSuperAdmin() && $tenant->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Set cancel_at_period_end to false to resume subscription
+        $tenant->update([
+            'cancel_at_period_end' => false,
+        ]);
+
+        return redirect()->back()->with('message', 'Subscription cancellation has been reversed. Your plan is now active again.');
     }
 }

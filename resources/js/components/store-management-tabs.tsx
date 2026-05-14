@@ -74,7 +74,7 @@ export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabs
 
             {/* Instantly render skeleton while Inertia fetches the next page */}
             {navigatingTo && (
-                <div className="absolute left-0 right-0 top-full mt-6 bg-white z-[60] min-h-screen pb-20">
+                <div className="absolute left-0 right-0 top-full mt-6 bg-background z-[60] min-h-screen pb-20">
                     {skeletonMap[navigatingTo]}
                 </div>
             )}

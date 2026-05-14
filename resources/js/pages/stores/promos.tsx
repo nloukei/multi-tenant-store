@@ -252,23 +252,23 @@ export default function StorePromos({ tenant, promos }: { tenant: any, promos: a
                 </Sheet>
             </div>
 
+            <StoreManagementTabs tenantId={tenant.id} activeTab="promos" />
+
             {/* Search */}
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Search promos..."
-                    className="pl-10 h-11 rounded-xl bg-neutral-50"
+                    className="pl-10 h-11 rounded-xl bg-muted"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
 
-            <StoreManagementTabs tenantId={tenant.id} activeTab="promos" />
-
             {/* Promo List */}
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-neutral-50 text-muted-foreground border-b">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-6 py-4 font-semibold uppercase tracking-wider">Promo</th>
                             <th className="px-6 py-4 font-semibold uppercase tracking-wider text-center">Discount</th>
@@ -280,10 +280,10 @@ export default function StorePromos({ tenant, promos }: { tenant: any, promos: a
                     <tbody className="divide-y">
                         {filteredPromos.length > 0 ? (
                             filteredPromos.map((promo) => (
-                                <tr key={promo.id} className="hover:bg-neutral-50 transition-colors group">
+                                <tr key={promo.id} className="hover:bg-muted/50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0 overflow-hidden border">
+                                            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border">
                                                 {promo.image_url ? (
                                                     <img src={promo.image_url} alt={promo.title} className="h-full w-full object-cover" />
                                                 ) : (
@@ -291,8 +291,8 @@ export default function StorePromos({ tenant, promos }: { tenant: any, promos: a
                                                 )}
                                             </div>
                                             <div>
-                                                <span className="font-bold text-neutral-900 block">{promo.title}</span>
-                                                <span className="text-xs text-muted-foreground font-mono bg-neutral-100 px-1.5 py-0.5 rounded">{promo.code}</span>
+                                                <span className="font-bold text-foreground block">{promo.title}</span>
+                                                <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">{promo.code}</span>
                                             </div>
                                         </div>
                                     </td>
@@ -345,7 +345,7 @@ export default function StorePromos({ tenant, promos }: { tenant: any, promos: a
                             <tr>
                                 <td colSpan={5} className="px-6 py-12 text-center">
                                     <div className="flex flex-col items-center gap-2">
-                                        <Tag className="h-10 w-10 text-neutral-200" />
+                                        <Tag className="h-10 w-10 text-muted" />
                                         <p className="text-muted-foreground">No promos found for this store.</p>
                                     </div>
                                 </td>

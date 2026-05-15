@@ -223,7 +223,11 @@ export default function StoreProducts({ tenant, products, categories }: { tenant
                 </Sheet>
             </div>
 
-            <StoreManagementTabs tenantId={tenant.id} activeTab="products" />
+            <StoreManagementTabs 
+                tenantId={tenant.id} 
+                activeTab="products" 
+                domain={tenant.domains?.[0]?.domain} 
+            />
 
             {/* Search and Filters */}
             <div className="relative">
@@ -281,7 +285,7 @@ export default function StoreProducts({ tenant, products, categories }: { tenant
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        <span className={`inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold ${product.stock > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                                             {product.stock} in stock
                                         </span>
                                     </td>

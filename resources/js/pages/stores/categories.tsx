@@ -200,7 +200,11 @@ export default function StoreCategories({ tenant, categories }: { tenant: any, c
                 </Sheet>
             </div>
 
-            <StoreManagementTabs tenantId={tenant.id} activeTab="categories" />
+            <StoreManagementTabs 
+                tenantId={tenant.id} 
+                activeTab="categories" 
+                domain={tenant.domains?.[0]?.domain} 
+            />
 
 
             <div className="rounded-xl border bg-card shadow-sm overflow-hidden">

@@ -1,6 +1,8 @@
 import { Link, router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { ExternalLink } from 'lucide-react';
+import { themes } from '@/themes';
 import {
     StoreSettingsSkeleton,
     StoreProductsSkeleton,
@@ -11,6 +13,7 @@ import {
 interface StoreManagementTabsProps {
     tenantId: string;
     activeTab: 'settings' | 'products' | 'categories' | 'promos' | 'orders';
+    domain?: string;
 }
 
 const skeletonMap = {
@@ -21,8 +24,12 @@ const skeletonMap = {
     orders: <StoreProductsSkeleton />, // Reusing products skeleton as a placeholder
 };
 
-export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabsProps) {
+export function StoreManagementTabs({ tenantId, activeTab, domain }: StoreManagementTabsProps) {
     const [navigatingTo, setNavigatingTo] = useState<'settings' | 'products' | 'categories' | 'promos' | 'orders' | null>(null);
+
+    const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+    const port = typeof window !== 'undefined' && window.location.port ? ':' + window.location.port : '';
+    const storeUrl = domain ? `${protocol}//${domain}${port}` : null;
 
     const tabs = [
         { id: 'settings' as const, label: 'Settings', href: route('stores.edit', tenantId) },
@@ -55,21 +62,36 @@ export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabs
 
     return (
         <div className="relative">
-            <div className="flex items-center gap-6 border-b -mt-2">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => handleTabClick(tab.id, tab.href)}
-                        className={cn(
-                            "pb-3 text-sm transition-colors border-b-2 cursor-pointer",
-                            activeTab === tab.id
-                                ? "border-black text-black font-bold"
-                                : "border-transparent text-muted-foreground hover:text-black font-medium"
-                        )}
+            <div className="flex items-center justify-between border-b -mt-2">
+                <div className="flex items-center gap-6">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => handleTabClick(tab.id, tab.href)}
+                            className={cn(
+                                "pb-3 text-sm transition-colors border-b-2 cursor-pointer",
+                                activeTab === tab.id
+                                    ? "border-white text-white font-bold"
+                                    : "border-transparent text-muted-foreground hover:text-white font-medium"
+                            )}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {storeUrl && (
+                    <a 
+                        href={storeUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 pb-3 text-xs font-bold transition-all hover:opacity-80 group"
+                        style={{ color: themes.colors.primary.DEFAULT }}
                     >
-                        {tab.label}
-                    </button>
-                ))}
+                        Visit Store
+                        <ExternalLink className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </a>
+                )}
             </div>
 
             {/* Instantly render skeleton while Inertia fetches the next page */}
@@ -80,5 +102,4 @@ export function StoreManagementTabs({ tenantId, activeTab }: StoreManagementTabs
             )}
         </div>
     );
-
 }

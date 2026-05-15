@@ -102,7 +102,11 @@ export default function StoreOrders({ tenant, orders }: Props) {
                     </div>
                 </div>
 
-                <StoreManagementTabs tenantId={tenant.id} activeTab="orders" />
+                <StoreManagementTabs 
+                    tenantId={tenant.id} 
+                    activeTab="orders" 
+                    domain={tenant.domains?.[0]?.domain} 
+                />
 
                 <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
                     <div className="p-6 border-b flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/30">
@@ -125,16 +129,16 @@ export default function StoreOrders({ tenant, orders }: Props) {
                                                     <p className="text-sm text-neutral-500">{formatDate(order.created_at)}</p>
                                                     <div className="mt-2 flex flex-wrap gap-2 items-center">
                                                         {order.customer ? (
-                                                            <div className="text-sm bg-muted inline-flex items-center px-3 py-1.5 rounded-lg border border-border">
+                                                            <div className="text-sm bg-muted inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg border border-border">
                                                                 <span className="font-bold mr-1">{order.customer.name}</span> &middot; <span className="ml-1">{order.customer.email}</span>
                                                             </div>
                                                         ) : (
-                                                            <div className="text-sm bg-muted inline-flex items-center px-3 py-1.5 rounded-lg border border-border">
+                                                            <div className="text-sm bg-muted inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg border border-border">
                                                                 <span className="font-bold italic text-neutral-500">Guest Checkout</span>
                                                             </div>
                                                         )}
                                                         {order.customer_location && (
-                                                            <div className="text-sm bg-blue-500/10 text-blue-600 inline-flex items-center px-3 py-1.5 rounded-lg border border-blue-500/20 font-medium">
+                                                            <div className="text-sm bg-blue-500/10 text-blue-600 inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg border border-blue-500/20 font-medium">
                                                                 <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0" />
                                                                 <span>{order.customer_location}</span>
                                                             </div>
@@ -156,7 +160,9 @@ export default function StoreOrders({ tenant, orders }: Props) {
                                                             <div key={item.id} className="space-y-2 pb-3 border-b border-border/40 last:border-0 last:pb-0">
                                                                 <div className="flex justify-between items-center text-sm">
                                                                     <span className="font-medium text-foreground flex items-center">
-                                                                        <span className="bg-muted text-muted-foreground font-bold px-2 py-0.5 rounded text-xs mr-3 shrink-0">{item.quantity}x</span>
+                                                                        <span className="bg-muted text-muted-foreground font-bold px-2 py-0.5 rounded text-xs mr-3 shrink-0 whitespace-nowrap">
+                                                                            {item.quantity}x
+                                                                        </span>
                                                                         <span className="line-clamp-1">{item.product_name}</span>
                                                                     </span>
                                                                     <span className="text-neutral-500 font-medium shrink-0 ml-2">{formatPrice(item.unit_price * item.quantity, order.currency)}</span>
@@ -172,7 +178,9 @@ export default function StoreOrders({ tenant, orders }: Props) {
                                                                                     />
                                                                                 ))}
                                                                             </div>
-                                                                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider bg-muted px-2 py-0.5 rounded">Customer Rating</span>
+                                                                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider bg-muted px-2 py-0.5 rounded whitespace-nowrap">
+                                                                                Customer Rating
+                                                                            </span>
                                                                         </div>
                                                                         {review.comment && (
                                                                             <p className="text-xs text-foreground italic mt-1 line-clamp-3">"{review.comment}"</p>

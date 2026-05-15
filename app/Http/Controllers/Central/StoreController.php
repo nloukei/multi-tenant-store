@@ -62,7 +62,7 @@ class StoreController extends Controller
     // View and manage store products
     public function products($id)
     {
-        $tenant = Tenant::findOrFail($id);
+        $tenant = Tenant::with('domains')->findOrFail($id);
         
         $tenant->run(function () use (&$products, &$categories, &$promos) {
             $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
@@ -167,7 +167,7 @@ class StoreController extends Controller
     // View and manage store categories
     public function categories($id)
     {
-        $tenant = Tenant::findOrFail($id);
+        $tenant = Tenant::with('domains')->findOrFail($id);
         
         $tenant->run(function () use (&$products, &$categories, &$promos) {
             $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
@@ -328,17 +328,26 @@ class StoreController extends Controller
                 'currency' => $request->input('currency', 'USD'),
             ]);
 
+            // Restore the PostgreSQL search path to public
+            // The Tenancy package's SchemaManager sometimes leaves the connection
+            // pointing to the newly created tenant schema, breaking central queries.
+            \Illuminate\Support\Facades\DB::statement("SET search_path TO public");
+
             try {
                 // Use the current request host as the base for the tenant subdomain
-                // This ensures domains work correctly across local, staging, and production
+                // Fallback to tenantly.software if on localhost to match branding
                 $centralDomain = $request->getHost();
+                if (in_array($centralDomain, ['localhost', '127.0.0.1'])) {
+                    $centralDomain = 'tenantly.software';
+                }
+                
                 $domainName = $validated['subdomain'] . '.' . $centralDomain;
 
                 Log::info('Creating domain record: ' . $domainName);
-                // Explicitly create domain record using the model
-                \Stancl\Tenancy\Database\Models\Domain::create([
+                
+                // Now that search_path is restored, relationships work correctly again
+                $tenant->domains()->create([
                     'domain' => $domainName,
-                    'tenant_id' => $tenant->id,
                 ]);
 
                 Log::info('Initializing tenancy for database setup...');
@@ -385,7 +394,7 @@ class StoreController extends Controller
     // View and manage store promos
     public function promos($id)
     {
-        $tenant = Tenant::findOrFail($id);
+        $tenant = Tenant::with('domains')->findOrFail($id);
 
         $tenant->run(function () use (&$products, &$categories, &$promos) {
             $products = \App\Models\Product::with('category')->orderBy('name')->get()->toArray();
@@ -502,7 +511,7 @@ class StoreController extends Controller
     // View and manage store orders
     public function orders($id)
     {
-        $tenant = Tenant::findOrFail($id);
+        $tenant = Tenant::with('domains')->findOrFail($id);
 
         $tenant->run(function () use (&$orders) {
             $orders = \App\Models\Order::with(['items', 'customer', 'reviews'])

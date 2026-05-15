@@ -3,11 +3,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
-import { Store, CheckCircle2, AlertCircle, Check, Sparkles, ShieldCheck } from 'lucide-react';
+import { Store, CheckCircle2, AlertCircle, Check, Sparkles, ShieldCheck, ExternalLink, LayoutDashboard, PartyPopper, XCircle } from 'lucide-react';
 import { themes } from '@/themes';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,6 +33,12 @@ export default function CreateStore() {
     const { flash, plans = [], current_plan_slug, auth } = usePage<any>().props;
     const currentPlanSlug = current_plan_slug || auth?.user?.plan?.slug || null;
 
+    const [createdStoreUrl, setCreatedStoreUrl] = useState<string | null>(null);
+    const [createdStoreName, setCreatedStoreName] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showModal, setShowModal] = useState(false);
+
     const { data, setData, post, processing, errors, reset } = useForm({
         store_name: '',
         subdomain: '',
@@ -35,15 +50,34 @@ export default function CreateStore() {
 
     const submitStore = (e: React.FormEvent) => {
         e.preventDefault();
+        const storeName = data.store_name;
+        const subdomain = data.subdomain;
         post(route('stores.store'), {
             onSuccess: (page: any) => {
-                if (page.props.flash.new_store_domain) {
+                const domain = page.props.flash?.new_store_domain;
+                const msg = page.props.flash?.message || 'Store created successfully!';
+                if (domain) {
                     const protocol = window.location.protocol;
                     const port = window.location.port ? ':' + window.location.port : '';
-                    const storeUrl = `${protocol}//${page.props.flash.new_store_domain}${port}`;
+                    const storeUrl = `${protocol}//${domain}${port}`;
+                    setCreatedStoreUrl(storeUrl);
+                    setCreatedStoreName(storeName || subdomain);
+                    setSuccessMessage(msg);
+                    setErrorMessage(null);
                     window.open(storeUrl, '_blank');
+                } else {
+                    setSuccessMessage(msg);
+                    setCreatedStoreUrl(null);
                 }
+                setShowModal(true);
                 reset();
+            },
+            onError: (errs: any) => {
+                const firstError = Object.values(errs)[0] as string;
+                setErrorMessage(firstError || 'Something went wrong. Please try again.');
+                setSuccessMessage(null);
+                setCreatedStoreUrl(null);
+                setShowModal(true);
             },
         });
     };
@@ -51,6 +85,91 @@ export default function CreateStore() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Store" />
+
+            {/* ── Result Modal ── */}
+            <Dialog open={showModal} onOpenChange={setShowModal}>
+                <DialogContent className="sm:max-w-md">
+                    {successMessage ? (
+                        /* ── Success ── */
+                        <>
+                            <DialogHeader>
+                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
+                                    <PartyPopper className="h-8 w-8 text-green-600 dark:text-green-400" />
+                                </div>
+                                <DialogTitle className="text-center text-xl">Store Created! 🎉</DialogTitle>
+                                <DialogDescription className="text-center">
+                                    <span className="font-semibold text-foreground">{createdStoreName}</span> is now live and has been opened in a new tab.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            {createdStoreUrl && (
+                                <div className="rounded-lg border border-green-500/30 bg-green-50 dark:bg-green-950/30 px-4 py-3 text-center">
+                                    <p className="text-xs text-muted-foreground mb-1">Your store URL</p>
+                                    <a
+                                        href={createdStoreUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-mono text-sm font-semibold text-green-700 dark:text-green-400 underline underline-offset-2 break-all hover:opacity-80 transition-opacity"
+                                    >
+                                        {createdStoreUrl}
+                                    </a>
+                                </div>
+                            )}
+
+                            <DialogFooter className="flex-col gap-2 sm:flex-col">
+                                {createdStoreUrl && (
+                                    <Button
+                                        asChild
+                                        className="w-full gap-2 font-semibold"
+                                        style={{ background: themes.gradients.primary, color: themes.colors.text.primary }}
+                                    >
+                                        <a href={createdStoreUrl} target="_blank" rel="noopener noreferrer">
+                                            <ExternalLink className="h-4 w-4" />
+                                            Open {createdStoreName || 'Store'}
+                                        </a>
+                                    </Button>
+                                )}
+                                <Button asChild variant="outline" className="w-full gap-2">
+                                    <Link href="/dashboard">
+                                        <LayoutDashboard className="h-4 w-4" />
+                                        Go to Dashboard
+                                    </Link>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="w-full text-muted-foreground"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Create Another Store
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    ) : (
+                        /* ── Error ── */
+                        <>
+                            <DialogHeader>
+                                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40">
+                                    <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                                </div>
+                                <DialogTitle className="text-center text-xl">Store Creation Failed</DialogTitle>
+                                <DialogDescription className="text-center">
+                                    {errorMessage || 'An unexpected error occurred. Please try again.'}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button
+                                    className="w-full"
+                                    variant="destructive"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Try Again
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
             <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-2xl mx-auto w-full">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Create a New Store</h1>
@@ -58,22 +177,6 @@ export default function CreateStore() {
                         Set up a new tenant store. Your new store will have its own subdomain and database.
                     </p>
                 </div>
-
-                {flash.error && (
-                    <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{flash.error}</AlertDescription>
-                    </Alert>
-                )}
-
-                {flash.message && (
-                    <Alert className="border-green-500/50 text-green-600 bg-green-50 dark:bg-green-950/20">
-                        <CheckCircle2 className="h-4 w-4 !text-green-600" />
-                        <AlertTitle>Success</AlertTitle>
-                        <AlertDescription>{flash.message}</AlertDescription>
-                    </Alert>
-                )}
 
                 <div
                     className="rounded-xl border bg-card text-card-foreground shadow-lg p-6 relative overflow-hidden"

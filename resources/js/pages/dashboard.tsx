@@ -32,7 +32,7 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                
+
                 {/* Header Section */}
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -40,8 +40,8 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
                             <h1 className="text-3xl font-bold tracking-tight">
                                 {isSuperAdmin ? 'Manage All Stores' : 'Your Stores'}
                             </h1>
-                            <Badge 
-                                variant={isSuperAdmin ? 'default' : 'secondary'} 
+                            <Badge
+                                variant={isSuperAdmin ? 'default' : 'secondary'}
                                 className="px-3 py-1 flex gap-1 text-white shadow-sm"
                                 style={isSuperAdmin ? { background: themes.gradients.primary } : { background: themes.colors.secondary.DEFAULT }}
                             >
@@ -57,8 +57,8 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
                             </Badge>
                         </div>
                         <p className="text-muted-foreground mt-2">
-                            {isSuperAdmin 
-                                ? 'Overview of all tenant stores across the platform.' 
+                            {isSuperAdmin
+                                ? 'Overview of all tenant stores across the platform.'
                                 : 'Manage the stores you own and operate.'}
                         </p>
                     </div>
@@ -71,11 +71,12 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
                             // Format the URL
                             const domain = tenant.domains?.[0]?.domain;
                             const protocol = window.location.protocol;
-                            const storeUrl = domain ? `${protocol}//${domain}${window.location.port ? ':' + window.location.port : ''}` : '#';
+                            const port = window.location.port ? ':' + window.location.port : '';
+                            const storeUrl = domain ? `${protocol}//${domain}` : '#';
 
                             return (
-                                <Card 
-                                    key={tenant.id} 
+                                <Card
+                                    key={tenant.id}
                                     className="flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg overflow-hidden group"
                                     style={{ borderColor: themes.colors.glass?.border || 'rgba(255,255,255,0.1)' }}
                                 >
@@ -115,38 +116,50 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
                                             const isTrialActive = trialDaysLeft > 0;
 
                                             return (
-                                                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${
-                                                    isTrialActive 
-                                                        ? 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-400' 
-                                                        : 'bg-destructive/10 border-destructive/20 text-destructive'
-                                                }`}>
+                                                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${isTrialActive
+                                                    ? 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-400'
+                                                    : 'bg-destructive/10 border-destructive/20 text-destructive'
+                                                    }`}>
                                                     <Clock className="w-3.5 h-3.5 shrink-0" />
                                                     <span>
-                                                        {isTrialActive 
-                                                            ? `Trial ends in ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'}` 
+                                                        {isTrialActive
+                                                            ? `Trial ends in ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'}`
                                                             : 'Trial expired'}
                                                     </span>
                                                 </div>
                                             );
                                         })()}
                                     </CardContent>
-                                    <CardFooter className="pt-4 border-t">
-                                        <div className="flex gap-2 w-full">
-                                            <Button asChild variant="outline" className="flex-1 gap-2">
+                                    <CardFooter className="pt-4 border-t mt-auto">
+                                        <div className="flex gap-2 w-full relative z-10">
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="flex-1 gap-2 transition-all hover:bg-accent active:scale-95"
+                                            >
                                                 <Link href={route('stores.edit', tenant.id)}>
                                                     Manage <Settings className="h-4 w-4" />
                                                 </Link>
                                             </Button>
-                                            <Button 
-                                                asChild 
-                                                className="flex-1 gap-2 transition-all hover:opacity-90 shadow-sm" 
-                                                disabled={!domain}
-                                                style={domain ? { background: themes.gradients.primary, color: themes.colors.text.primary } : {}}
-                                            >
-                                                <a href={storeUrl} target="_blank" rel="noopener noreferrer">
+
+                                            {domain ? (
+                                                <Button
+                                                    asChild
+                                                    className="flex-1 gap-2 transition-all hover:opacity-90 shadow-md active:scale-95"
+                                                    style={{ background: themes.gradients.primary, color: themes.colors.text.primary }}
+                                                >
+                                                    <a href={storeUrl} target="_blank" rel="noopener noreferrer">
+                                                        Visit <ExternalLink className="h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    disabled
+                                                    className="flex-1 gap-2 opacity-50 cursor-not-allowed"
+                                                >
                                                     Visit <ExternalLink className="h-4 w-4" />
-                                                </a>
-                                            </Button>
+                                                </Button>
+                                            )}
                                         </div>
                                     </CardFooter>
                                 </Card>
@@ -154,7 +167,7 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
                         })}
                     </div>
                 ) : (
-                    <div 
+                    <div
                         className="flex flex-col items-center justify-center p-12 text-center border rounded-xl bg-neutral-50/50 dark:bg-neutral-900/20 border-dashed transition-all"
                         style={{ borderColor: themes.colors.glass?.border || 'rgba(255,255,255,0.1)' }}
                     >
@@ -163,8 +176,8 @@ export default function Dashboard({ tenants }: { tenants: Tenant[] }) {
                         </div>
                         <h3 className="text-lg font-semibold">No stores found</h3>
                         <p className="text-muted-foreground max-w-sm mt-2">
-                            {isSuperAdmin 
-                                ? "There are no stores in the system yet." 
+                            {isSuperAdmin
+                                ? "There are no stores in the system yet."
                                 : "You haven't created any stores yet."}
                         </p>
                     </div>

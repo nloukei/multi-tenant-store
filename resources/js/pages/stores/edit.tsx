@@ -89,7 +89,11 @@ export default function EditStore({ tenant }: { tenant: any }) {
                 </div>
             </div>
 
-            <StoreManagementTabs tenantId={tenant.id} activeTab="settings" />
+            <StoreManagementTabs 
+                tenantId={tenant.id} 
+                activeTab="settings" 
+                domain={tenant.domains?.[0]?.domain} 
+            />
 
             {flash.error && (
                 <Alert variant="destructive">

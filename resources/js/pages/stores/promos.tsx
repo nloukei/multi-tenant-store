@@ -132,15 +132,15 @@ export default function StorePromos({ tenant, promos }: { tenant: any, promos: a
         const end = promo.ends_at ? new Date(promo.ends_at) : null;
 
         if (!promo.is_active) {
-            return <span className="px-2 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500">Inactive</span>;
+            return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-500 whitespace-nowrap">Inactive</span>;
         }
         if (end && now > end) {
-            return <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Expired</span>;
+            return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 whitespace-nowrap">Expired</span>;
         }
         if (start && now < start) {
-            return <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Scheduled</span>;
+            return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 whitespace-nowrap">Scheduled</span>;
         }
-        return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 whitespace-nowrap">Active</span>;
     };
 
     const mainContent = useMemo(() => (
@@ -252,7 +252,11 @@ export default function StorePromos({ tenant, promos }: { tenant: any, promos: a
                 </Sheet>
             </div>
 
-            <StoreManagementTabs tenantId={tenant.id} activeTab="promos" />
+            <StoreManagementTabs 
+                tenantId={tenant.id} 
+                activeTab="promos" 
+                domain={tenant.domains?.[0]?.domain} 
+            />
 
             {/* Search */}
             <div className="relative">

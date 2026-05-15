@@ -1,6 +1,6 @@
 import { ProductCard } from '@/components/tenant/product-card';
 import { TopBar } from '@/components/tenant/top-bar';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -26,6 +26,11 @@ interface TenantProps {
     banner_text?: string | null;
     trial_ends_at?: string | null;
     currency?: string | null;
+    hero_title?: string | null;
+    hero_subtitle?: string | null;
+    hero_button_text?: string | null;
+    hero_button_link?: string | null;
+    hero_alignment?: 'left' | 'center' | 'right';
 }
 
 interface Props {
@@ -133,6 +138,42 @@ export default function Storefront({ tenant, products }: Props) {
                                 </h2>
                                 <div className="h-1 w-20 mx-auto rounded-full" style={{ backgroundColor: accent }} />
                                 <p className="text-neutral-500 font-medium tracking-wide">COMING SOON</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Hero Text Overlay */}
+                    {(tenant.hero_title || tenant.hero_subtitle || tenant.hero_button_text) && (
+                        <div className={`absolute inset-0 z-10 flex flex-col justify-center px-8 md:px-20 ${
+                            tenant.hero_alignment === 'left' ? 'items-start text-left' :
+                            tenant.hero_alignment === 'right' ? 'items-end text-right' :
+                            'items-center text-center'
+                        }`}>
+                            {banners.length > 0 && (
+                                <div className="bg-black/30 absolute inset-0 -z-10 pointer-events-none" />
+                            )}
+                            <div className="max-w-3xl drop-shadow-xl space-y-6">
+                                {tenant.hero_title && (
+                                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-tight" style={{ color: banners.length > 0 ? '#ffffff' : '#171717' }}>
+                                        {tenant.hero_title}
+                                    </h1>
+                                )}
+                                {tenant.hero_subtitle && (
+                                    <p className="text-lg md:text-2xl font-medium leading-relaxed max-w-2xl" style={{ color: banners.length > 0 ? 'rgba(255,255,255,0.9)' : '#525252' }}>
+                                        {tenant.hero_subtitle}
+                                    </p>
+                                )}
+                                {tenant.hero_button_text && (
+                                    <div className={`pt-4 ${tenant.hero_alignment === 'left' ? 'flex justify-start' : tenant.hero_alignment === 'right' ? 'flex justify-end' : 'flex justify-center'}`}>
+                                        <Link
+                                            href={tenant.hero_button_link || '#'}
+                                            className="inline-flex items-center justify-center px-8 py-4 text-sm font-bold uppercase tracking-wider text-white transition-all hover:scale-105 hover:shadow-lg rounded-full"
+                                            style={{ backgroundColor: accent }}
+                                        >
+                                            {tenant.hero_button_text}
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

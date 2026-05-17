@@ -1,3 +1,4 @@
+x`
 <?php
 
 use App\Http\Controllers\Central\StoreController;
@@ -34,7 +35,10 @@ Route::domain('{central}')
 
         // Home page
         Route::get('/', function () {
-            return Inertia::render('welcome');
+            $plans = \App\Models\Plan::query()->orderBy('price', 'asc')->get();
+            return Inertia::render('welcome', [
+                'plans' => $plans,
+            ]);
         })->name('home');
 
         // Load authentication routes
@@ -81,7 +85,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/stores/{tenant}/orders', [StoreController::class, 'orders'])->name('stores.orders');
     Route::patch('/stores/{tenant}/orders/{order}/status', [StoreController::class, 'updateOrderStatus'])->name('stores.orders.status');
     Route::patch('/stores/{tenant}', [StoreController::class, 'update'])->name('stores.update');
-    
+
     // Subscription & Plan management
     Route::get('/stores/{tenant}/plan', [StoreController::class, 'editPlan'])->name('stores.plan');
     Route::patch('/stores/{tenant}/plan', [StoreController::class, 'updatePlan'])->name('stores.plan.update');

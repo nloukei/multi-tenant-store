@@ -2,6 +2,7 @@
 
 // Boots Laravel and wires routing + middleware (the spine of every HTTP request).
 
+use App\Http\Middleware\SanitizeAndValidateInput;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetCentralDomainRouteDefaults;
 use App\Http\Middleware\EnsureSuperAdmin;
@@ -20,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->prepend(SanitizeAndValidateInput::class);
+
         $middleware->trustProxies(at: '*');
 
         $middleware->alias([
@@ -34,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         // "append" runs after core web middleware — good for Inertia shared props and extra headers.
         $middleware->web(append: [
+            'throttle:global',
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

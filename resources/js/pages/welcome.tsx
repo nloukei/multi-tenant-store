@@ -2,14 +2,7 @@ import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { themes } from '../themes';
-
-function StoreLogo() {
-    return (
-        <svg viewBox="0 0 40 42" className="h-8 w-8 fill-current" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" clipRule="evenodd" d="M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z" />
-        </svg>
-    );
-}
+import AppLogoIcon from '../components/app-logo-icon';
 
 const features = [
     {
@@ -76,9 +69,43 @@ const steps = [
     { num: '04', title: 'Start Selling', desc: 'Share your store link and start accepting Stripe payments instantly.' },
 ];
 
-export default function Welcome() {
+export default function Welcome({ plans = [] }: { plans?: any[] }) {
     const { auth } = usePage<SharedData>().props;
     const [scrolled, setScrolled] = useState(false);
+
+    const resolvedPlans = plans.length > 0 ? plans.map(p => ({
+        name: p.name,
+        price: parseFloat(p.price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+        desc: p.description,
+        features: Array.isArray(p.features) ? p.features : [],
+        cta: parseFloat(p.price) > 0 ? 'Choose Plan' : 'Get Started Free',
+        popular: p.slug === 'pro',
+    })) : [
+        {
+            name: 'Free',
+            price: '0',
+            desc: 'Perfect for testing out your storefront ideas.',
+            features: ['1 Tenant Storefront', 'Standard Subdomain', 'Community Support', 'Basic Analytics'],
+            cta: 'Get Started Free',
+            popular: false,
+        },
+        {
+            name: 'Basic',
+            price: '15,000',
+            desc: 'For growing businesses ready to start selling.',
+            features: ['Custom Domain Ready', 'Stripe Checkout Integrated', 'Promo Code Engine', 'Priority Support', 'Unlimited Products'],
+            cta: 'Choose Basic',
+            popular: false,
+        },
+        {
+            name: 'Pro',
+            price: '50,000',
+            desc: 'Maximum performance and complete platform access.',
+            features: ['Unlimited Multi-Tenant Stores', 'Premium Theme Access', 'Dedicated Account Mgr', 'Advanced Multi-Tenant Analytics', '0% Extra Platform Fees'],
+            cta: 'Choose Pro',
+            popular: true,
+        },
+    ];
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -116,9 +143,7 @@ export default function Welcome() {
                 <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'backdrop-blur-xl border-b border-white/5 py-3' : 'py-5'}`} style={{ backgroundColor: scrolled ? `${themes.colors.background}E6` : 'transparent' }}>
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-6">
                         <div className="flex items-center gap-2.5">
-                            <div className="rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 p-1.5 text-white">
-                                <StoreLogo />
-                            </div>
+                            <AppLogoIcon className="h-8 w-8 fill-current" />
                             <span className="text-lg font-bold tracking-tight">Tenantly</span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -246,6 +271,77 @@ export default function Welcome() {
                     </div>
                 </section>
 
+                {/* Pricing Plans */}
+                <section className="relative py-28 px-6" id="pricing">
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                        <div className="absolute right-1/4 top-1/2 h-[500px] w-[500px] rounded-full bg-fuchsia-600/10 blur-[130px]" />
+                        <div className="absolute left-1/4 bottom-0 h-[400px] w-[400px] rounded-full bg-violet-600/10 blur-[120px]" />
+                    </div>
+                    <div className="relative z-10 mx-auto max-w-6xl">
+                        <div className="text-center">
+                            <p className="text-sm font-semibold uppercase tracking-widest text-violet-400">Pricing</p>
+                            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Choose the right plan for your business</h2>
+                            <p className="mx-auto mt-4 max-w-xl text-white/50">
+                                Simple, transparent pricing designed to grow with your business. Select a plan to start your 14-day trial.
+                            </p>
+                        </div>
+
+                        <div className="mt-16 grid gap-8 md:grid-cols-3">
+                            {resolvedPlans.map((plan, i) => (
+                                <div 
+                                    key={i} 
+                                    className={`card-hover relative flex flex-col justify-between rounded-3xl border p-8 backdrop-blur-sm transition-all duration-300 ${
+                                        plan.popular 
+                                            ? 'border-violet-500/50 bg-white/[0.04] shadow-2xl shadow-violet-500/10 md:scale-[1.04]' 
+                                            : 'border-white/5 bg-white/[0.02] hover:border-violet-500/30'
+                                    }`}
+                                >
+                                    {plan.popular && (
+                                        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
+                                            Most Popular
+                                        </span>
+                                    )}
+
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                                        </div>
+                                        <p className="mt-3 text-sm text-white/50 leading-relaxed min-h-[40px]">{plan.desc}</p>
+                                        <div className="mt-6 flex items-baseline">
+                                            <span className="text-4xl font-extrabold tracking-tight text-white">${plan.price}</span>
+                                            <span className="ml-1 text-sm font-medium text-white/40">/month</span>
+                                        </div>
+
+                                        <ul className="mt-8 space-y-4 border-t border-white/5 pt-6">
+                                            {plan.features.map((feature, idx) => (
+                                                <li key={idx} className="flex items-start gap-3 text-sm text-white/70">
+                                                    <svg className="h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                                    </svg>
+                                                    <span>{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    <div className="mt-8 pt-6 border-t border-white/5">
+                                        <Link 
+                                            href={auth.user ? route('dashboard') : route('register')}
+                                            className={`flex w-full items-center justify-center rounded-full py-3 text-sm font-semibold transition-all duration-200 ${
+                                                plan.popular
+                                                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90 hover:shadow-lg hover:shadow-violet-500/20'
+                                                    : 'border border-white/10 text-white/90 hover:border-white/20 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {plan.cta}
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
                 {/* CTA */}
                 <section className="relative py-28 px-6">
                     <div className="relative z-10 mx-auto max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-600/10 via-indigo-600/10 to-fuchsia-600/10 p-12 text-center backdrop-blur-sm sm:p-16">
@@ -269,7 +365,7 @@ export default function Welcome() {
                     <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
                         <div className="flex items-center gap-2">
                             <div className="rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 p-1 text-white">
-                                <StoreLogo />
+                                <AppLogoIcon />
                             </div>
                             <span className="text-sm font-semibold">Tenantly</span>
                         </div>

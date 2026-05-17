@@ -1,6 +1,6 @@
 import { TopBar } from '@/components/tenant/top-bar';
 import { ProductCard } from '@/components/tenant/product-card';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import { Package, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,7 +30,7 @@ export default function CategoryPage({ tenant, category, products, currentSort }
     const accent = tenant.primary_color;
 
     const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        router.get(route('tenant.category.show', category.slug), { sort: e.target.value }, {
+        router.get(`/category/${category.slug}`, { sort: e.target.value }, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
@@ -95,9 +95,21 @@ export default function CategoryPage({ tenant, category, products, currentSort }
                                 />
                             ))
                         ) : (
-                            <div className="col-span-full py-20 text-center bg-white border border-neutral-200 rounded-xl">
-                                <Package className="mx-auto h-12 w-12 text-neutral-300 mb-4" />
-                                <p className="text-neutral-500 font-medium">No products found in this category.</p>
+                            <div className="col-span-full py-20 px-6 text-center bg-white border border-neutral-200 rounded-2xl shadow-sm max-w-xl mx-auto mt-8 flex flex-col items-center justify-center">
+                                <div className="h-16 w-16 rounded-full flex items-center justify-center mb-6" style={{ backgroundColor: `${accent}10` }}>
+                                    <Package className="h-8 w-8 stroke-[1.5]" style={{ color: accent }} />
+                                </div>
+                                <h3 className="text-xl font-black text-neutral-900 mb-2">No Products Available</h3>
+                                <p className="text-neutral-500 text-sm max-w-sm mb-8 leading-relaxed">
+                                    We are currently updates or restocking items in <strong className="text-neutral-800">{category.name}</strong>. Please check back later or explore our other collections.
+                                </p>
+                                <Link 
+                                    href="/"
+                                    className="inline-flex items-center justify-center px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-all hover:scale-105 hover:shadow-md rounded-full"
+                                    style={{ backgroundColor: accent }}
+                                >
+                                    Continue Shopping
+                                </Link>
                             </div>
                         )}
                     </div>

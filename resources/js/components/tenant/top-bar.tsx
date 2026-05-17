@@ -12,6 +12,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { Link, usePage } from '@inertiajs/react';
 import { LogOut, ShoppingBag, User, ChevronDown, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
+import { useMemo } from 'react';
 
 interface Category {
     id: number;
@@ -34,11 +35,14 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
     const accent = tenant.primary_color;
     const categories = tenant.categories || [];
 
+    // Derive current path once for active-link detection instead of calling route().current() per category
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+
     return (
         <header className="border-b border-black/10 bg-white/80 backdrop-blur-md sticky top-0 z-50">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-8 py-4">
                 {/* Store Logo & Name */}
-                <Link href={route('tenant.home')} prefetch className="flex items-center gap-3 shrink-0">
+                <Link href="/" className="flex items-center gap-3 shrink-0">
                     {tenant.logo_url ? (
                         <img src={tenant.logo_url} alt="" className="h-10 w-auto max-w-[150px] object-contain" />
                     ) : (
@@ -62,7 +66,6 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                     {/* Cart Button */}
                     <Link 
                         href="/cart" 
-                        prefetch
                         className="group relative flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 transition-all hover:bg-neutral-200 cursor-pointer z-10"
                     >
                         <ShoppingCart className="h-5 w-5 text-neutral-600 transition-colors group-hover:text-neutral-900" />
@@ -78,8 +81,7 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
 
                     {tenant_auth && (
                         <Link 
-                            href={route('tenant.orders.index')} 
-                            prefetch
+                            href="/orders" 
                             className="group relative flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 transition-all hover:bg-neutral-200 cursor-pointer z-10"
                         >
                             <ShoppingBag className="h-5 w-5 text-neutral-600 transition-colors group-hover:text-neutral-900" />
@@ -118,14 +120,14 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href={route('tenant.orders.index')} className="cursor-pointer">
+                                    <Link href="/orders" className="cursor-pointer">
                                         <ShoppingBag className="mr-2 h-4 w-4" />
                                         <span>My Orders</span>
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-red-600 cursor-pointer" asChild>
-                                    <Link href={route('tenant.logout')} method="post" as="button" className="w-full text-left">
+                                    <Link href="/logout" method="post" as="button" className="w-full text-left">
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Log out</span>
                                     </Link>
@@ -135,10 +137,10 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                     ) : (
                         <div className="flex items-center gap-2">
                             <SecondaryButton asChild className="hidden sm:flex">
-                                <Link href={route('tenant.login')}>Login</Link>
+                                <Link href="/login">Login</Link>
                             </SecondaryButton>
                             <PrimaryButton asChild>
-                                <Link href={route('tenant.register')}>Register</Link>
+                                <Link href="/register">Register</Link>
                             </PrimaryButton>
                         </div>
                     )}
@@ -149,12 +151,12 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
             <div className="border-t border-black/5 bg-neutral-50/50">
                 <div className="mx-auto flex max-w-7xl items-center gap-6 px-8 py-2 overflow-x-auto no-scrollbar">
                     <Link
-                        href={route('tenant.home')}
+                        href="/"
                         className="text-sm font-semibold text-neutral-900 hover:opacity-80 transition-all whitespace-nowrap relative group"
-                        style={{ color: route().current('tenant.home') ? accent : undefined }}
+                        style={{ color: currentPath === '/' ? accent : undefined }}
                     >
                         Home
-                        {route().current('tenant.home') && (
+                        {currentPath === '/' && (
                             <span className="absolute -bottom-[9px] left-0 right-0 h-0.5 rounded-full" style={{ backgroundColor: accent }} />
                         )}
                     </Link>
@@ -169,7 +171,7 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                                 <DropdownMenuContent align="start" className="w-48">
                                     {category.children.map(child => (
                                         <DropdownMenuItem key={child.id} asChild>
-                                            <Link href={route('tenant.category.show', child.slug)} className="cursor-pointer w-full">
+                                            <Link href={`/category/${child.slug}`} className="cursor-pointer w-full">
                                                 {child.name}
                                             </Link>
                                         </DropdownMenuItem>
@@ -179,12 +181,12 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                         ) : (
                             <Link
                                 key={category.id}
-                                href={route('tenant.category.show', category.slug)}
+                                href={`/category/${category.slug}`}
                                 className="text-sm font-medium text-neutral-600 hover:opacity-80 transition-all whitespace-nowrap relative group"
-                                style={{ color: route().current('tenant.category.show', category.slug) ? accent : undefined }}
+                                style={{ color: currentPath === `/category/${category.slug}` ? accent : undefined }}
                             >
                                 {category.name}
-                                {route().current('tenant.category.show', category.slug) && (
+                                {currentPath === `/category/${category.slug}` && (
                                     <span className="absolute -bottom-[9px] left-0 right-0 h-0.5 rounded-full" style={{ backgroundColor: accent }} />
                                 )}
                             </Link>
@@ -194,9 +196,8 @@ export function TopBar({ tenant }: { tenant: TenantProps }) {
                     {/* Promos Tab */}
                     <Link
                         href="/promos"
-                        prefetch
                         className="text-sm font-semibold text-neutral-600 hover:text-neutral-900 transition-colors whitespace-nowrap flex items-center gap-1.5"
-                        style={{ color: accent }}
+                        style={{ color: currentPath === '/promos' ? accent : undefined }}
                     >
                         🔥 Promos
                     </Link>

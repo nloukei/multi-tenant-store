@@ -5,12 +5,14 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 try {
-    $tenant = \App\Models\Tenant::first();
-    \Stancl\Tenancy\Facades\Tenancy::initialize($tenant);
-    echo "Tenant connection config:\n";
-    print_r(config('database.connections.tenant'));
-    echo "\nDefault connection: " . config('database.default') . "\n";
+    $tables = \Illuminate\Support\Facades\DB::select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+    echo "Tables in public schema:\n";
+    foreach ($tables as $t) {
+        echo "- " . $t->table_name . "\n";
+    }
+    
+    $searchPath = \Illuminate\Support\Facades\DB::select("SHOW search_path");
+    echo "\nsearch_path: " . print_r($searchPath, true) . "\n";
 } catch (\Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
-    echo $e->getTraceAsString();
 }

@@ -1,4 +1,3 @@
-x`
 <?php
 
 use App\Http\Controllers\Central\StoreController;

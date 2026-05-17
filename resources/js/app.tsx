@@ -10,7 +10,7 @@ declare global {
     const route: typeof routeFn;
 }
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Tenantly';
 
 import { Toaster } from '@/components/ui/toast';
 
@@ -39,7 +39,7 @@ createInertiaApp({
 
 // Swap favicon to a spinner during Inertia navigation to simulate browser tab loading
 let originalFavicon = '';
-const animatedFavicon = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M16 4A12 12 0 1 0 28 16'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 16 16' to='360 16 16' dur='0.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E`;
+const animatedFavicon = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='%237c3aed' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M16 4A12 12 0 1 0 28 16'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 16 16' to='360 16 16' dur='0.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E`;
 
 router.on('start', () => {
     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;

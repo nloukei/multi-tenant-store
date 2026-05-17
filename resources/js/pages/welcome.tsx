@@ -288,13 +288,12 @@ export default function Welcome({ plans = [] }: { plans?: any[] }) {
 
                         <div className="mt-16 grid gap-8 md:grid-cols-3">
                             {resolvedPlans.map((plan, i) => (
-                                <div 
-                                    key={i} 
-                                    className={`card-hover relative flex flex-col justify-between rounded-3xl border p-8 backdrop-blur-sm transition-all duration-300 ${
-                                        plan.popular 
-                                            ? 'border-violet-500/50 bg-white/[0.04] shadow-2xl shadow-violet-500/10 md:scale-[1.04]' 
-                                            : 'border-white/5 bg-white/[0.02] hover:border-violet-500/30'
-                                    }`}
+                                <div
+                                    key={i}
+                                    className={`card-hover relative flex flex-col justify-between rounded-3xl border p-8 backdrop-blur-sm transition-all duration-300 ${plan.popular
+                                        ? 'border-violet-500/50 bg-white/[0.04] shadow-2xl shadow-violet-500/10 md:scale-[1.04]'
+                                        : 'border-white/5 bg-white/[0.02] hover:border-violet-500/30'
+                                        }`}
                                 >
                                     {plan.popular && (
                                         <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
@@ -308,7 +307,7 @@ export default function Welcome({ plans = [] }: { plans?: any[] }) {
                                         </div>
                                         <p className="mt-3 text-sm text-white/50 leading-relaxed min-h-[40px]">{plan.desc}</p>
                                         <div className="mt-6 flex items-baseline">
-                                            <span className="text-4xl font-extrabold tracking-tight text-white">${plan.price}</span>
+                                            <span className="text-4xl font-extrabold tracking-tight text-white">₱{plan.price}</span>
                                             <span className="ml-1 text-sm font-medium text-white/40">/month</span>
                                         </div>
 
@@ -325,13 +324,12 @@ export default function Welcome({ plans = [] }: { plans?: any[] }) {
                                     </div>
 
                                     <div className="mt-8 pt-6 border-t border-white/5">
-                                        <Link 
+                                        <Link
                                             href={auth.user ? route('dashboard') : route('register')}
-                                            className={`flex w-full items-center justify-center rounded-full py-3 text-sm font-semibold transition-all duration-200 ${
-                                                plan.popular
-                                                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90 hover:shadow-lg hover:shadow-violet-500/20'
-                                                    : 'border border-white/10 text-white/90 hover:border-white/20 hover:bg-white/5'
-                                            }`}
+                                            className={`flex w-full items-center justify-center rounded-full py-3 text-sm font-semibold transition-all duration-200 ${plan.popular
+                                                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90 hover:shadow-lg hover:shadow-violet-500/20'
+                                                : 'border border-white/10 text-white/90 hover:border-white/20 hover:bg-white/5'
+                                                }`}
                                         >
                                             {plan.cta}
                                         </Link>
@@ -361,15 +359,53 @@ export default function Welcome({ plans = [] }: { plans?: any[] }) {
                 </section>
 
                 {/* Footer */}
-                <footer className="border-t border-white/5 py-10 px-6">
-                    <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-                        <div className="flex items-center gap-2">
-                            <div className="rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 p-1 text-white">
-                                <AppLogoIcon />
+                <footer className="border-t border-white/5 py-12 px-6">
+                    <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                        <div className="flex flex-col items-center md:items-start gap-2">
+                            <div className="flex items-center gap-2">
+                                <div className="rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 p-1 text-white">
+                                    <AppLogoIcon />
+                                </div>
+                                <span className="text-sm font-semibold">Tenantly</span>
                             </div>
-                            <span className="text-sm font-semibold">Tenantly</span>
+                            <p className="text-xs text-white/40 mt-1 max-w-md leading-relaxed">
+                                Disclaimer: This is a personal project only and not an actual running business. Built for demonstration and showcase purposes.
+                            </p>
                         </div>
-                        <p className="text-sm text-white/30">&copy; {new Date().getFullYear()} Tenantly. Built with Laravel, Astro, &amp; React. This is a personal project only.</p>
+                        <div className="flex flex-col items-center md:items-end gap-2 text-sm text-white/50">
+                            <p>
+                                Made by{" "}
+                                <a
+                                    href="https://keithpogoy.tech"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-semibold text-violet-400 hover:text-violet-300 transition-colors"
+                                >
+                                    Keith Einlou Pogoy
+                                </a>
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-white/30">
+                                <span>&copy; {new Date().getFullYear()} Tenantly</span>
+                                <span>&bull;</span>
+                                <a
+                                    href="https://github.com/nloukei"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-white transition-colors"
+                                >
+                                    GitHub (@nloukei)
+                                </a>
+                                <span>&bull;</span>
+                                <a
+                                    href="https://keithpogoy.tech"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-white transition-colors"
+                                >
+                                    Portfolio
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </footer>
             </div>

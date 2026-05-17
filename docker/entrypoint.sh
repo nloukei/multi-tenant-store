@@ -21,6 +21,7 @@ php artisan view:cache
 # Run migrations
 echo "Running migrations..."
 php artisan migrate --force
+php artisan tenants:migrate --force
 
 # Start PHP-FPM in background
 php-fpm -D

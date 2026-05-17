@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Copyright (c) 2026 Keith Einlou Pogoy. All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copying of this file is strictly prohibited.
+ */
+
 namespace App\Http\Middleware;
 
 use Closure;

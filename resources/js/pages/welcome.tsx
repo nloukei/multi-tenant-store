@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2026 Keith Einlou Pogoy. All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copying of this file is strictly prohibited.
+ */
+
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';

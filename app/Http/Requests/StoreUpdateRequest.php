@@ -33,11 +33,6 @@ class StoreUpdateRequest extends FormRequest
             'banner_images.*' => 'nullable|image|max:5120',
             'delete_banners' => 'nullable|array',
             'currency' => 'nullable|string|size:3',
-            'hero_title' => 'nullable|string|max:255',
-            'hero_subtitle' => 'nullable|string|max:500',
-            'hero_button_text' => 'nullable|string|max:100',
-            'hero_button_link' => 'nullable|string|max:255',
-            'hero_alignment' => 'nullable|in:left,center,right',
         ];
     }
 }

@@ -27,11 +27,6 @@ export default function EditStore({ tenant }: { tenant: any }) {
         banner_images: [] as File[],
         delete_banners: [] as number[],
         currency: tenant.currency || 'USD',
-        hero_title: tenant.hero_title || '',
-        hero_subtitle: tenant.hero_subtitle || '',
-        hero_button_text: tenant.hero_button_text || '',
-        hero_button_link: tenant.hero_button_link || '',
-        hero_alignment: tenant.hero_alignment || 'center',
     });
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(() => [
@@ -285,86 +280,7 @@ export default function EditStore({ tenant }: { tenant: any }) {
                     </div>
                 </div>
 
-                {/* ── Section 3: Hero Section Configuration ── */}
-                <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                    <div className="border-b bg-neutral-50/50 px-6 py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-neutral-100 flex items-center justify-center">
-                                <Sparkles className="h-4 w-4 text-neutral-500" />
-                            </div>
-                            <div>
-                                <h2 className="font-bold text-sm">Hero Section Configuration</h2>
-                                <p className="text-xs text-muted-foreground">Customize the main banner text and call to action</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="p-6 grid md:grid-cols-2 gap-6">
-                        {/* Title */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="hero_title">Hero Title</Label>
-                            <Input
-                                id="hero_title"
-                                value={data.hero_title}
-                                onChange={(e) => setData('hero_title', e.target.value)}
-                                placeholder="e.g. Welcome to Our Store"
-                            />
-                            <InputError message={errors.hero_title} />
-                        </div>
-
-                        {/* Subtitle */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="hero_subtitle">Hero Subtitle</Label>
-                            <Input
-                                id="hero_subtitle"
-                                value={data.hero_subtitle}
-                                onChange={(e) => setData('hero_subtitle', e.target.value)}
-                                placeholder="e.g. Discover the best products"
-                            />
-                            <InputError message={errors.hero_subtitle} />
-                        </div>
-
-                        {/* Button Text */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="hero_button_text">Button Text</Label>
-                            <Input
-                                id="hero_button_text"
-                                value={data.hero_button_text}
-                                onChange={(e) => setData('hero_button_text', e.target.value)}
-                                placeholder="e.g. Shop Now"
-                            />
-                            <InputError message={errors.hero_button_text} />
-                        </div>
-
-                        {/* Button Link */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="hero_button_link">Button Link</Label>
-                            <Input
-                                id="hero_button_link"
-                                value={data.hero_button_link}
-                                onChange={(e) => setData('hero_button_link', e.target.value)}
-                                placeholder="e.g. /products"
-                            />
-                            <InputError message={errors.hero_button_link} />
-                        </div>
-
-                        {/* Alignment */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="hero_alignment">Text Alignment</Label>
-                            <select
-                                id="hero_alignment"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={data.hero_alignment}
-                                onChange={(e) => setData('hero_alignment', e.target.value)}
-                            >
-                                <option value="left">Left Aligned</option>
-                                <option value="center">Centered</option>
-                                <option value="right">Right Aligned</option>
-                            </select>
-                            <InputError message={errors.hero_alignment} />
-                        </div>
-                    </div>
-                </div>
 
                 {/* ── Section 4: Banner Carousel ── */}
                 <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">

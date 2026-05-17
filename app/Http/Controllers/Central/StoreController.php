@@ -294,11 +294,6 @@ class StoreController extends Controller
             'currency' => $validated['currency'] ?? 'USD',
             'logo_url' => $tenant->logo_url,
             'banners' => $banners,
-            'hero_title' => $validated['hero_title'] ?? null,
-            'hero_subtitle' => $validated['hero_subtitle'] ?? null,
-            'hero_button_text' => $validated['hero_button_text'] ?? null,
-            'hero_button_link' => $validated['hero_button_link'] ?? null,
-            'hero_alignment' => $validated['hero_alignment'] ?? 'center',
         ]);
 
         return redirect()->back()->with('message', 'Store settings updated successfully!');
@@ -353,12 +348,20 @@ class StoreController extends Controller
                 
                 $domainName = $validated['subdomain'] . '.' . $centralDomain;
 
-                Log::info('Creating domain record: ' . $domainName);
+                Log::info('Creating domain records for tenant ' . $tenant->id);
                 
                 // Now that search_path is restored, relationships work correctly again
                 $tenant->domains()->create([
                     'domain' => $domainName,
                 ]);
+
+                // Also register subdomain.localhost to support offline/local development out-of-the-box
+                $localDomain = $validated['subdomain'] . '.localhost';
+                if ($domainName !== $localDomain) {
+                    $tenant->domains()->create([
+                        'domain' => $localDomain,
+                    ]);
+                }
 
                 Log::info('Initializing tenancy for database setup...');
                 Tenancy::initialize($tenant);

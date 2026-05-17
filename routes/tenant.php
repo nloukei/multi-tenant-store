@@ -73,10 +73,50 @@ Route::middleware([
     // Store storefront (Publicly accessible)
     Route::get('/', function () {
         // Get all products from the store
-        $products = Product::query()->orderBy('name')->get();
+        $products = Product::query()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->orderBy('name')
+            ->get();
+
+        // Featured products: top-rated products with at least 1 review
+        $featured = Product::query()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->whereHas('reviews')
+            ->orderByDesc('reviews_avg_rating')
+            ->limit(8)
+            ->get();
+
+        // Newest arrivals (last 8 products added)
+        $newArrivals = Product::query()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->orderByDesc('created_at')
+            ->limit(8)
+            ->get();
+
+        // Active categories with product counts
+        $categories = \App\Models\Category::withCount('products')
+            ->has('products')
+            ->orderBy('name')
+            ->get();
+
+        // Active promos (up to 3 for a highlight strip)
+        $activePromos = \App\Models\Promo::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+            })
+            ->orderByDesc('created_at')
+            ->limit(3)
+            ->get();
 
         return Inertia::render('tenant/store-front', [
             'products' => $products,
+            'featured' => $featured,
+            'newArrivals' => $newArrivals,
+            'categories' => $categories,
+            'activePromos' => $activePromos,
         ]);
     })->name('tenant.home');
     
@@ -91,6 +131,8 @@ Route::middleware([
         $relatedProducts = $product->category_id
             ? Product::where('category_id', $product->category_id)
                 ->where('id', '!=', $product->id)
+                ->withCount('reviews')
+                ->withAvg('reviews', 'rating')
                 ->limit(4)
                 ->get()
             : collect();
@@ -113,7 +155,10 @@ Route::middleware([
     Route::get('/category/{slug}', function (string $slug, \Illuminate\Http\Request $request) {
         $category = \App\Models\Category::where('slug', $slug)->firstOrFail();
         
-        $query = Product::where('category_id', $category->id)->where('is_active', true);
+        $query = Product::where('category_id', $category->id)
+            ->where('is_active', true)
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating');
 
         // Sorting
         $sort = $request->query('sort', 'newest');

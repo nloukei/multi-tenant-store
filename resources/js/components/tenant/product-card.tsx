@@ -9,6 +9,8 @@ interface Product {
     name: string;
     price: string | number;
     image_url?: string;
+    reviews_count?: number;
+    reviews_avg_rating?: number | string | null;
 }
 
 export function ProductCard({ product, currency = 'USD' }: { product: Product, currency?: string }) {
@@ -48,6 +50,28 @@ export function ProductCard({ product, currency = 'USD' }: { product: Product, c
                             {product.name}
                         </h3>
                     </Link>
+                </div>
+                
+                {/* Rating Block */}
+                <div className="flex items-center gap-1.5 mb-4 text-xs">
+                    <div className="flex items-center text-amber-500">
+                        {Array.from({ length: 5 }).map((_, i) => {
+                            const rating = Number(product.reviews_avg_rating) || 0;
+                            const isFilled = i < Math.round(rating);
+                            return (
+                                <span key={i} className={isFilled ? "text-amber-500" : "text-neutral-200"}>
+                                    ★
+                                </span>
+                            );
+                        })}
+                    </div>
+                    {product.reviews_count && product.reviews_count > 0 ? (
+                        <span className="text-neutral-500 font-medium">
+                            {Number(product.reviews_avg_rating).toFixed(1)} ({product.reviews_count} {product.reviews_count === 1 ? 'review' : 'reviews'})
+                        </span>
+                    ) : (
+                        <span className="text-neutral-400 italic">No reviews yet</span>
+                    )}
                 </div>
                 
                 <div className="mt-auto pt-4">

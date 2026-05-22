@@ -2,18 +2,18 @@ export const themes = {
     colors: {
         background: '#09090b',
         primary: {
-            light: '#a78bfa',   // violet-400
-            DEFAULT: '#8b5cf6', // violet-500
-            dark: '#7c3aed',    // violet-600
+            light: '#60a5fa',   // blue-400
+            DEFAULT: '#2563eb', // blue-600
+            dark: '#1d4ed8',    // blue-700
         },
         secondary: {
-            light: '#818cf8',   // indigo-400
-            DEFAULT: '#6366f1', // indigo-500
-            dark: '#4f46e5',    // indigo-600
+            light: '#94a3b8',   // slate-400
+            DEFAULT: '#475569', // slate-600
+            dark: '#334155',    // slate-700
         },
         accent: {
-            DEFAULT: '#d946ef', // fuchsia-500
-            pink: '#ec4899',    // pink-500
+            DEFAULT: '#2563eb', // blue-600
+            pink: '#3b82f6',    // blue-500
         },
         success: {
             DEFAULT: '#34d399', // emerald-400
@@ -25,12 +25,12 @@ export const themes = {
             dim: 'rgba(255, 255, 255, 0.3)',
         },
         glass: {
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: 'rgba(255, 255, 255, 0.1)',
+            background: '#1e293b',
+            border: '#334155',
         }
     },
     gradients: {
-        primary: 'linear-gradient(to bottom right, #8b5cf6, #4f46e5)', // violet-500 to indigo-600
-        shimmer: 'linear-gradient(90deg, #a855f7, #6366f1, #ec4899, #a855f7)',
+        primary: '#2563eb', 
+        shimmer: '#3b82f6',
     }
 };
